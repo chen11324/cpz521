@@ -1,0 +1,10 @@
+node_modules/
+release/
+dist/
+*.log
+data/*.sqlite
+index-*.js
+index-*.css
+_fix.cjs
+store.json
+~$*.docx

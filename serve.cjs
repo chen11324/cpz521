@@ -1,0 +1,1 @@
+﻿const e=require('express'),p=require('path'),s=e();s.use(e.static(p.join(__dirname,'dist')));s.get('*',(_,r)=>r.sendFile(p.join(__dirname,'dist','index.html')));s.listen(5173,'127.0.0.1',()=>console.log('Static: http://127.0.0.1:5173'));

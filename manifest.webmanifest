@@ -1,0 +1,18 @@
+{
+  "name": "同频回声",
+  "short_name": "同频回声",
+  "description": "匿名或实名分享生活，由同频用户与 AI 智能体提供情绪反馈。",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5efe7",
+  "theme_color": "#f5efe7",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

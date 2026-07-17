@@ -1,0 +1,84 @@
+{
+  "name": "empathy-circle",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "dev:api": "node --no-warnings server.mjs",
+    "dev:full": "concurrently \"npm run dev:api\" \"npm run dev\"",
+    "build": "vite build",
+    "test:api": "node api-smoke-test.mjs",
+    "test:auth-ui": "node auth-ui-audit.mjs",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview --host 0.0.0.0",
+    "desktop:dev": "npm run build && electron .",
+    "desktop:build:win": "npm run build && electron-builder --win",
+    "desktop:build:mac": "npm run build && electron-builder --mac",
+    "desktop:build:all": "npm run build && electron-builder --win --mac"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "lucide-react": "latest",
+    "qrcode": "^1.5.4",
+    "react": "latest",
+    "react-dom": "latest",
+    "typescript": "latest",
+    "vite": "latest",
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "concurrently": "latest",
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "main": "main.js",
+  "build": {
+    "appId": "com.empathy.circle",
+    "productName": "同频回声",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "dist/**/*",
+      "server.mjs",
+      "data/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "icon.ico"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "icon.icns",
+      "category": "public.app-category.social-networking"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "同频回声"
+    }
+  }
+}
