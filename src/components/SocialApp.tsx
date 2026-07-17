@@ -28,6 +28,8 @@ export function SocialApp({ user, onLogout }: Props) {
   const [draftImageName, setDraftImageName] = useState('');
   const [draftImagePreview, setDraftImagePreview] = useState('');
   const [selectedPostId, setSelectedPostId] = useState(1);
+  const [likedPostIds, setLikedPostIds] = useState<number[]>(() => JSON.parse(localStorage.getItem('empathy-circle.liked-posts') || '[]'));
+  const [feedFilter, setFeedFilter] = useState<'全部' | '已通过' | '需复核'>('全部');
   const [notice, setNotice] = useState('正在连接本地 API 服务...');
   const [apiOnline, setApiOnline] = useState(false);
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -35,12 +37,14 @@ export function SocialApp({ user, onLogout }: Props) {
   const { posts, reviewTasks, securityEvents, privacy } = state;
   const selectedPost = posts.find((post) => post.id === selectedPostId) ?? posts[0];
   const personalPosts = posts.filter((post) => post.author === '我' || post.author.startsWith('匿名用户'));
-  const visiblePosts = activeView === '空间' ? personalPosts : posts;
+  const scopedPosts = activeView === '空间' ? personalPosts : posts;
+  const visiblePosts = scopedPosts.filter((post) => feedFilter === '全部' || post.review === feedFilter);
   const selectedAgent = agentProfiles.find((agent) => agent.name === selectedAgentName) ?? agentProfiles[0];
   const reviewSummary = useMemo(() => ({ total: posts.length, pending: reviewTasks.filter((task) => task.status === '待处理').length, blocked: posts.filter((post) => post.review === '已拦截').length }), [posts, reviewTasks]);
 
   useEffect(() => { api<AppState>('/state').then((serverState) => { setState(serverState); setApiOnline(true); setNotice('本地 API 已连接，数据由服务端持久化'); }).catch(() => { setApiOnline(false); setNotice('API 未连接，已切换到浏览器本地模式'); }); }, []);
   useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }, [state]);
+  useEffect(() => { localStorage.setItem('empathy-circle.liked-posts', JSON.stringify(likedPostIds)); }, [likedPostIds]);
 
 
   function applyLocalPost(content: string) {
@@ -121,15 +125,33 @@ export function SocialApp({ user, onLogout }: Props) {
   }
 
   async function likePost(postId = selectedPost.id) {
+    if (likedPostIds.includes(postId)) {
+      setSelectedPostId(postId);
+      setNotice('你已经认可过这条动态了，感谢这份回应');
+      return;
+    }
     try { setState(await api<AppState>('/likes', { method: 'POST', body: JSON.stringify({ postId }) })); setApiOnline(true); }
     catch { setState({ ...state, posts: posts.map((post) => (post.id === postId ? { ...post, likes: post.likes + 1 } : post)) }); }
-    setSelectedPostId(postId); setNotice('已认可这条动态');
+    setLikedPostIds((current) => [...current, postId]);
+    setSelectedPostId(postId);
+    setNotice('已认可这条动态，你的反馈会被温柔送达');
   }
 
   function toggleComments(postId: number) {
     setSelectedPostId(postId);
     setShowCommentsFor((current) => (current === postId ? null : postId));
     setNotice(showCommentsFor === postId ? '已收起评论区' : '已展开评论区，可补充同频回应');
+  }
+
+  function usePrompt(prompt: string) {
+    setDraft(prompt);
+    setNotice('已填入一条表达灵感，可以继续修改后发布');
+  }
+
+  function clearDraftImage() {
+    setDraftImageName('');
+    setDraftImagePreview('');
+    setNotice('已移除配图');
   }
 
   function addPeerComment(postId: number) {
@@ -151,7 +173,7 @@ export function SocialApp({ user, onLogout }: Props) {
     localStorage.removeItem(STORAGE_KEY);
     try { setState(await api<AppState>('/state', { method: 'DELETE' })); setApiOnline(true); }
     catch { setState(initialState()); }
-    setSelectedPostId(1); setVisibility('匿名');
+    setSelectedPostId(1); setVisibility('匿名'); setLikedPostIds([]);
     setNotice('数据已清除并恢复默认状态');
   }
 
@@ -227,11 +249,15 @@ export function SocialApp({ user, onLogout }: Props) {
             <div className="composer-avatar">{visibility === '匿名' ? '匿' : '我'}</div>
             <div className="composer-body">
               <div className="composer-head"><div className="segmented"><button className={visibility === '匿名' ? 'selected' : ''} onClick={() => setVisibility('匿名')}><EyeOff size={16} />匿名</button><button className={visibility === '实名' ? 'selected' : ''} onClick={() => setVisibility('实名')}><UserRoundCheck size={16} />实名</button></div><span className="review-chip"><ShieldCheck size={15} />实时审核</span></div>
-              <textarea value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="这一刻想记录什么？" rows={3} />
+              <div className="prompt-chips"><span>不知道从哪里说起？</span><button type="button" onClick={() => usePrompt('今天让我想慢下来的一件小事是……')}>慢下来</button><button type="button" onClick={() => usePrompt('我想谢谢今天那个认真听我说话的人。')}>说谢谢</button><button type="button" onClick={() => usePrompt('此刻我最想被理解的是……')}>被理解</button></div>
+              <textarea value={draft} maxLength={280} onChange={(event) => setDraft(event.target.value)} placeholder="这一刻想记录什么？" rows={3} />
+              <div className="composer-status"><span>{draft.length}/280</span><span>{visibility === '匿名' ? '匿名身份已隔离' : '将以实名身份发布'}</span></div>
               <input ref={draftImageRef} className="cover-input" type="file" accept="image/*" onChange={(event) => attachDraftImage(event.target.files?.[0])} />
-              <div className="composer-actions"><div className="hint-list"><button className="mini-action" onClick={() => draftImageRef.current?.click()}><ImagePlus size={14} />{draftImageName || '配图'}</button><span>同频可见</span><span>AI 回声</span></div><button className="primary-button" onClick={submitPost}><Send size={17} />发布</button></div>
+              {draftImagePreview && <div className="draft-preview"><img src={draftImagePreview} alt="待发布配图预览" /><div><strong>{draftImageName || '已选择配图'}</strong><button type="button" onClick={clearDraftImage}><XCircle size={15} />移除</button></div></div>}
+              <div className="composer-actions"><div className="hint-list"><button className="mini-action" onClick={() => draftImageRef.current?.click()}><ImagePlus size={14} />{draftImageName || '配图'}</button><span>同频可见</span><span>AI 回声</span></div><button className="primary-button" disabled={!draft.trim()} onClick={submitPost}><Send size={17} />{draft.trim() ? '发布回声' : '写点什么吧'}</button></div>
             </div>
           </section>
+          <section className="feed-toolbar" aria-label="动态筛选"><div><span>今日回声</span><strong>{visiblePosts.length} 条正在发生</strong></div><div className="feed-filters">{(['全部', '已通过', '需复核'] as const).map((filter) => <button type="button" key={filter} className={feedFilter === filter ? 'active' : ''} onClick={() => setFeedFilter(filter)}>{filter}</button>)}</div></section>
           <section className="moments-list" aria-label="朋友圈动态">
             {visiblePosts.map((post) => (
               <article className={`moment-card ${post.id === selectedPostId ? 'focused' : ''}`} key={post.id} onClick={() => setSelectedPostId(post.id)}>
@@ -240,7 +266,7 @@ export function SocialApp({ user, onLogout }: Props) {
                   <div className="moment-head"><div><strong>{post.author}</strong><span>{post.visibility} · {post.time}</span></div><span className={`state ${post.review === '已拦截' ? 'blocked' : post.review === '需复核' ? 'warning' : 'ok'}`}>{post.review}{post.risk > 40 && ` · ${post.risk}`}</span></div>
                   <p>{post.text}</p>
                   <img className="moment-image" src={imageFor(post)} alt="" />
-                  <div className="moment-meta"><span>{post.mood} · {post.topic}</span><button onClick={(e) => { e.stopPropagation(); toggleComments(post.id); }}><MessageCircle size={14} />{post.peerReplies.length}</button><button onClick={(e) => { e.stopPropagation(); likePost(post.id); }}><ThumbsUp size={14} />{post.likes}</button></div>
+                  <div className="moment-meta"><span>{post.mood} · {post.topic}</span><button onClick={(e) => { e.stopPropagation(); toggleComments(post.id); }}><MessageCircle size={14} />{post.peerReplies.length}</button><button className={likedPostIds.includes(post.id) ? 'liked' : ''} onClick={(e) => { e.stopPropagation(); likePost(post.id); }}><ThumbsUp size={14} />{likedPostIds.includes(post.id) ? '已认可 ' : ''}{post.likes}</button></div>
                 </div>
               </article>
             ))}
@@ -269,6 +295,7 @@ export function SocialApp({ user, onLogout }: Props) {
         <section className="review-card"><div className="section-title"><LockKeyhole size={18} /><h2>隐私控制</h2></div><label className="toggle-row"><input type="checkbox" checked={privacy.anonymousDefault} onChange={(event) => updatePrivacy({ anonymousDefault: event.target.checked })} /><span>默认匿名发布</span></label><label className="toggle-row"><input type="checkbox" checked={privacy.allowPeerMatch} onChange={(event) => updatePrivacy({ allowPeerMatch: event.target.checked })} /><span>允许同频推荐</span></label><label className="toggle-row"><input type="checkbox" checked={privacy.localAuditLog} onChange={(event) => updatePrivacy({ localAuditLog: event.target.checked })} /><span>保留审核记录</span></label><div className="button-row"><button className="secondary-button" onClick={exportAuditData}>导出数据</button><button className="danger-button" onClick={clearLocalData}>清除数据</button></div></section>
         <button className="floating-action" onClick={simulateDefense}><Radio size={18} />模拟防护</button><button className="secondary-button wide" onClick={() => likePost()}><ThumbsUp size={18} />认可当前动态</button>
       </aside>
+      {notice && <div className="app-toast" role="status"><Sparkles size={16} /><span>{notice}</span></div>}
     </main>
   );
 }

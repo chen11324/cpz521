@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   BadgeCheck, Bot, HeartHandshake, KeyRound, LayoutDashboard, LockKeyhole,
-  LogOut, MessageCircle, Settings, ShieldCheck, UsersRound,
+  LogOut, MessageCircle, Radio, RefreshCw, Settings, ShieldCheck, Sparkles, UsersRound,
 } from 'lucide-react';
 import type { Account, AiSettings, AiTestResult, AppState, ReviewStatus, Role, SessionUser } from '../types';
 import { demoCredentials } from '../constants';
@@ -26,6 +26,8 @@ export function AdminApp({ user, onLogout }: Props) {
   const canManageAccounts = user.role === '运营管理员' || user.role === '最高管理员';
   const canConfigureAi = user.role === '最高管理员';
   const canAudit = user.role === '内容审核员' || canManageAccounts;
+
+  const healthScore = Math.max(72, 100 - state.reviewTasks.filter((task) => task.status === '待处理').length * 7 - state.posts.filter((post) => post.review === '已拦截').length * 3);
 
   const permissionRows = [
     { role: '用户', scope: '发布动态、匿名展示、同频互动、举报内容' },
@@ -91,6 +93,25 @@ export function AdminApp({ user, onLogout }: Props) {
     }
   }
 
+  async function refreshDashboard() {
+    try {
+      setState(await api<AppState>('/state'));
+      setNotice('后台状态已刷新，所有指标均来自当前服务端');
+    } catch {
+      setNotice('暂时无法刷新服务端，正在展示本地缓存');
+    }
+  }
+
+  async function simulateDefense() {
+    if (!canManageAccounts) return setNotice('当前角色没有发起防护演练的权限');
+    try {
+      setState(await api<AppState>('/security/simulate', { method: 'POST' }));
+      setNotice('防护演练完成：异常流量已被网关拦截');
+    } catch {
+      setNotice('防护演练未连接到服务端，请稍后再试');
+    }
+  }
+
   function inspectAccount(account: Account) {
     setSelectedAccountId(account.id === selectedAccountId ? null : account.id);
     setNotice(`已选中账号 ${account.username}`);
@@ -126,7 +147,8 @@ export function AdminApp({ user, onLogout }: Props) {
       <section className="admin-main">
         {section === '概述' && (
           <section className="admin-panel overview">
-            <div className="panel-heading"><h2>安全概览</h2><span>{state.securityEvents.length} 条事件</span></div>
+            <div className="panel-heading admin-heading"><div><span>系统态势 · 实时同步</span><h2>安全概览</h2><p>审核、隐私隔离与网关防护正在共同守护每一次表达。</p></div><div className="overview-actions"><button type="button" onClick={refreshDashboard}><RefreshCw size={16} />刷新状态</button><button type="button" disabled={!canManageAccounts} onClick={simulateDefense}><Radio size={16} />防护演练</button></div></div>
+            <section className="health-card"><div><span>系统健康度</span><strong>{healthScore}%</strong><small>内容审核、权限隔离与网关策略运行正常</small></div><div className="health-ring" style={{ background: 'conic-gradient(var(--accent) ' + healthScore + '%, #edf0eb 0)' }}><span>{healthScore}</span></div></section>
             <div className="metric-grid admin-metrics">
               <div><strong>{state.posts.length}</strong><span>动态</span></div>
               <div><strong>{state.reviewTasks.length}</strong><span>审核队列</span></div>
@@ -198,6 +220,7 @@ export function AdminApp({ user, onLogout }: Props) {
           </section>
         )}
       </section>
+      {notice && <div className="app-toast admin-toast" role="status"><Sparkles size={16} /><span>{notice}</span></div>}
     </main>
   );
 }

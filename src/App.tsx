@@ -5,15 +5,23 @@ import { SocialApp } from './components/SocialApp';
 import { AdminApp } from './components/AdminApp';
 
 export function App() {
-  const [user, setUser] = useState<SessionUser | null>(null);
+  const [user, setUser] = useState<SessionUser | null>(() => {
+    try {
+      const saved = localStorage.getItem('empathy-circle.user');
+      return saved ? JSON.parse(saved) as SessionUser : null;
+    } catch {
+      return null;
+    }
+  });
 
   function login(nextUser: SessionUser) {
-    localStorage.removeItem('empathy-circle.session');
+    localStorage.setItem('empathy-circle.user', JSON.stringify(nextUser));
     setUser(nextUser);
   }
 
   function logout() {
     localStorage.removeItem('empathy-circle.session');
+    localStorage.removeItem('empathy-circle.user');
     setUser(null);
   }
 
@@ -21,6 +29,7 @@ export function App() {
     const params = new URLSearchParams(window.location.search);
     if (params.has('login')) {
       localStorage.removeItem('empathy-circle.session');
+      localStorage.removeItem('empathy-circle.user');
       setUser(null);
     }
   }, []);

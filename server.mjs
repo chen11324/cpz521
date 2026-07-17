@@ -358,7 +358,7 @@ function send(response, status, payload) {
     'content-type': 'application/json; charset=utf-8',
     'access-control-allow-origin': '*',
     'access-control-allow-methods': 'GET,POST,PATCH,DELETE,OPTIONS',
-    'access-control-allow-headers': 'content-type',
+    'access-control-allow-headers': 'content-type, authorization',
   });
   response.end(JSON.stringify(payload));
 }
