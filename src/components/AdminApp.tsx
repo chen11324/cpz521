@@ -36,6 +36,19 @@ export function AdminApp({ user, onLogout }: Props) {
     { role: '最高管理员', scope: '全部后台权限，包含 DeepSeek API 配置和连通测试' },
   ];
 
+  // Auto-dismiss non-persistent notices
+  useEffect(() => {
+    const persistentPrefixes = ['????'];
+    const isPersistent = persistentPrefixes.some(p => notice.startsWith(p));
+    if (!notice || isPersistent) return;
+    const timer = setTimeout(() => {
+      const el = document.querySelector('.admin-toast');
+      if (el) el.classList.add('toast-out');
+      setTimeout(() => setNotice(''), 300);
+    }, 3500);
+    return () => clearTimeout(timer);
+  }, [notice]);
+
   useEffect(() => {
     api<AppState>('/state').then(setState).catch(() => undefined);
     api<{ accounts: Account[] }>('/admin/accounts')
