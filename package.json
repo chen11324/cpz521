@@ -11,7 +11,7 @@
     "test:api": "node api-smoke-test.mjs",
     "test:auth-ui": "node auth-ui-audit.mjs",
     "typecheck": "tsc --noEmit",
-    "preview": "vite preview --host 0.0.0.0",
+    "preview": "npm run build && wrangler dev",
     "desktop:dev": "npm run build && electron .",
     "desktop:build:win": "npm run build && electron-builder --win",
     "desktop:build:mac": "npm run build && electron-builder --mac",
@@ -20,7 +20,8 @@
     "mobile:android:sync": "npm run build && cap sync android",
     "mobile:ios:sync": "npm run build && cap sync ios",
     "mobile:open:android": "cap open android",
-    "mobile:open:ios": "cap open ios"
+    "mobile:open:ios": "cap open ios",
+    "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.2",
@@ -37,11 +38,13 @@
     "vite": "latest"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.45.1",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "concurrently": "latest",
     "electron": "^33.2.0",
-    "electron-builder": "^25.1.8"
+    "electron-builder": "^25.1.8",
+    "wrangler": "^4.112.0"
   },
   "main": "main.js",
   "build": {
