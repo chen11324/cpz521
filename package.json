@@ -15,17 +15,26 @@
     "desktop:dev": "npm run build && electron .",
     "desktop:build:win": "npm run build && electron-builder --win",
     "desktop:build:mac": "npm run build && electron-builder --mac",
-    "desktop:build:all": "npm run build && electron-builder --win --mac"
+    "desktop:build:all": "npm run build && electron-builder --win --mac",
+    "mobile:sync": "npm run build && cap sync",
+    "mobile:android:sync": "npm run build && cap sync android",
+    "mobile:ios:sync": "npm run build && cap sync ios",
+    "mobile:open:android": "cap open android",
+    "mobile:open:ios": "cap open ios"
   },
   "dependencies": {
+    "@capacitor/android": "^8.4.2",
+    "@capacitor/cli": "^8.4.2",
+    "@capacitor/core": "^8.4.2",
+    "@capacitor/ios": "^8.4.2",
     "@vitejs/plugin-react": "latest",
+    "express": "^4.21.0",
     "lucide-react": "latest",
     "qrcode": "^1.5.4",
     "react": "latest",
     "react-dom": "latest",
     "typescript": "latest",
-    "vite": "latest",
-    "express": "^4.21.0"
+    "vite": "latest"
   },
   "devDependencies": {
     "@types/react": "^19.2.17",

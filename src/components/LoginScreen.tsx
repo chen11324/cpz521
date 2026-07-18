@@ -2,13 +2,10 @@ import { useState } from 'react';
 import QRCode from 'qrcode';
 import {
   BadgeCheck,
-  Bot,
   HeartHandshake,
-  LockKeyhole,
   LogIn,
   MonitorSmartphone,
   QrCode,
-  ShieldCheck,
   Smartphone,
   UserPlus,
 } from 'lucide-react';
@@ -31,7 +28,7 @@ export function LoginScreen({ onLogin }: Props) {
   const [qrNotice, setQrNotice] = useState('');
 
   const forceLoginPreview = new URLSearchParams(window.location.search).has('login');
-  const loginCopy = mode === '登录' ? '分享生活，获得同频回响。' : '创建你的回声身份，开启同频世界。';
+  const loginCopy = mode === '登录' ? '把此刻的情绪放在这里，让真诚的回应慢慢抵达。' : '从一个昵称开始，为自己留下一处安心表达的角落。';
 
   async function accountSubmit() {
     if (mode === '注册') {
@@ -128,33 +125,38 @@ export function LoginScreen({ onLogin }: Props) {
           <span className="brand-mark"><HeartHandshake size={24} /></span>
           <strong>同频回声</strong>
         </div>
-        <div className="auth-copy">
-          <span>{mode === '登录' ? '登录 / 授权' : '注册 / 绑定'}</span>
-          <h1>{mode === '登录' ? '欢迎回来' : '加入同频'}</h1>
-          <p>{loginCopy}</p>
-        </div>
-        <div className="auth-proof">
-          <div><ShieldCheck size={20} /><span>实时内容审核</span></div>
-          <div><Bot size={20} /><span>多智能体情绪反馈</span></div>
-          <div><LockKeyhole size={20} /><span>匿名身份隔离</span></div>
-        </div>
-        <div className="auth-flow-strip">
-          <article className={mode === '登录' ? 'active' : ''}>
-            <strong>登录</strong><span>旧账号直接进入</span>
-          </article>
-          <article className={mode === '注册' ? 'active' : ''}>
-            <strong>注册</strong><span>新账号先绑定</span>
-          </article>
+        <div className="auth-story-main">
+          <div className="auth-copy">
+            <span>一个更轻松的表达空间</span>
+            <h1>{mode === '登录' ? '把心事，放进温柔的回响里。' : '从一句真心话，遇见同频的人。'}</h1>
+            <p>{loginCopy}</p>
+          </div>
+          <div className="auth-echo-scene" aria-hidden="true">
+            <i className="echo-ring echo-ring-one" />
+            <i className="echo-ring echo-ring-two" />
+            <i className="echo-dot echo-dot-one" />
+            <i className="echo-dot echo-dot-two" />
+            <div className="echo-core"><HeartHandshake size={34} /></div>
+          </div>
         </div>
       </section>
 
       <section className="auth-panel">
         <div className="auth-card">
+          <div className="auth-panel-header">
+            <span>回声正在等你</span>
+            <h2>{mode === '登录' ? '欢迎回来' : '创建你的回声身份'}</h2>
+            <p>{mode === '登录' ? '继续你的同频时刻，看看今天有哪些温柔回应。' : '填写简单信息，开始记录与分享你的此刻。'}</p>
+          </div>
+          <div className="auth-mode-switch" role="tablist" aria-label="账号操作">
+            <button type="button" role="tab" aria-selected={mode === '登录'} className={mode === '登录' ? 'active' : ''} onClick={() => setMode('登录')}>登录</button>
+            <button type="button" role="tab" aria-selected={mode === '注册'} className={mode === '注册' ? 'active' : ''} onClick={() => setMode('注册')}>注册</button>
+          </div>
           <div className="auth-layout">
-            <article className={`auth-pane login-pane ${mode === '登录' ? 'active' : ''}`} onClick={() => setMode('登录')}>
-              <span>登录入口</span>
-              <strong>微信 / QQ / Apple / 密码</strong>
-              <small>已有账号直接进入；后台账号也从这里登录。</small>
+            <article className={`auth-pane login-pane ${mode === '登录' ? 'active' : ''}`}>
+              <span>账号登录</span>
+              <strong>回到你的同频瞬间</strong>
+              <small>支持账号密码和第三方授权，管理员会自动进入工作台。</small>
               <label className="field-label">
                 账号或昵称
                 <input value={username} onChange={(event) => setUsername(event.target.value)} autoComplete="username" />
@@ -167,10 +169,10 @@ export function LoginScreen({ onLogin }: Props) {
                 <LogIn size={18} />登录并进入
               </button>
             </article>
-            <article className={`auth-pane register-pane ${mode === '注册' ? 'active' : ''}`} onClick={() => setMode('注册')}>
-              <span>注册入口</span>
-              <strong>昵称 + 手机号 + 授权</strong>
-              <small>新用户先注册，再进入同频内容区和个人空间。</small>
+            <article className={`auth-pane register-pane ${mode === '注册' ? 'active' : ''}`}>
+              <span>新朋友，欢迎你</span>
+              <strong>留下一点属于你的标记</strong>
+              <small>注册后即可使用匿名表达、同频互动和个人空间。</small>
               <label className="field-label">
                 显示昵称
                 <input value={nickname} onChange={(event) => setNickname(event.target.value)} placeholder="例如：林屿" />
@@ -185,14 +187,10 @@ export function LoginScreen({ onLogin }: Props) {
             </article>
           </div>
           <div className="auth-version-badge">
-            <BadgeCheck size={15} />登录页 v5 · 真二维码 · 双入口{forceLoginPreview ? ' · 强制预览' : ''}
-          </div>
-          <div className="auth-banner">
-            <span>{mode === '登录' ? '已有账号' : '新用户'}</span>
-            <strong>{mode === '登录' ? '直接进入内容与后台' : '先完成绑定，再开始表达'}</strong>
+            <BadgeCheck size={15} />安心连接 · 多种登录方式{forceLoginPreview ? ' · 强制预览' : ''}
           </div>
           <p className="phone-rule">
-            <Smartphone size={15} />账号、微信、QQ、Apple 登录均需完成手机号绑定；管理员登录成功后直接进入后台。
+            <Smartphone size={15} />第三方登录首次使用需绑定手机号；管理员账号会自动进入工作台。
           </p>
           <button
             className="reset-session"

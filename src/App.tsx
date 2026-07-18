@@ -3,6 +3,7 @@ import type { SessionUser } from './types';
 import { LoginScreen } from './components/LoginScreen';
 import { SocialApp } from './components/SocialApp';
 import { AdminApp } from './components/AdminApp';
+import { BrandCursor } from './components/BrandCursor';
 
 export function App() {
   const [user, setUser] = useState<SessionUser | null>(() => {
@@ -34,7 +35,11 @@ export function App() {
     }
   }, []);
 
-  if (!user) return <LoginScreen onLogin={login} />;
-  if (user.role !== '用户') return <AdminApp user={user} onLogout={logout} />;
-  return <SocialApp user={user} onLogout={logout} />;
+  const content = !user
+    ? <LoginScreen onLogin={login} />
+    : user.role !== '用户'
+      ? <AdminApp user={user} onLogout={logout} />
+      : <SocialApp user={user} onLogout={logout} />;
+
+  return <><BrandCursor />{content}</>;
 }

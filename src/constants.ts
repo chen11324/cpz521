@@ -1,6 +1,6 @@
 ﻿import type { PrivacySettings, SocialProvider, SocialStage } from './types';
 
-export const API_BASE = 'http://localhost:8787/api';
+export const API_BASE = (import.meta.env.VITE_API_BASE || 'http://localhost:8787/api').replace(/\/$/, '');
 export const STORAGE_KEY = 'empathy-circle.state';
 
 export const coverImages = [
