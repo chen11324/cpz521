@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  AlertTriangle, Bell, Bot, Camera, BadgeCheck, CheckCircle2, EyeOff, Flame,
-  HeartHandshake, ImagePlus, LockKeyhole, LogOut, MessageCircle, Radio,
-  Search, Send, ShieldCheck, Sparkles, ThumbsUp, UserRoundCheck, UsersRound, XCircle,
+  AlertTriangle, Bell, BellRing, Bot, Camera, BadgeCheck, CheckCircle2, ChevronLeft,
+  EyeOff, Flame, Heart, HeartHandshake, Home, ImagePlus, LockKeyhole, LogOut,
+  Menu, MessageCircle, Radio, RefreshCw, Search, Send, ShieldCheck,
+  Sparkles, ThumbsUp, User, UserRoundCheck, UsersRound, X, XCircle,
 } from 'lucide-react';
 import type { ActiveView, AppState, Post, PrivacySettings, Reply, ReviewStatus, SessionUser, Visibility } from '../types';
 import { agentProfiles, circleProfiles, coverImages, STORAGE_KEY, themes } from '../constants';
@@ -30,6 +31,14 @@ export function SocialApp({ user, onLogout }: Props) {
   const [draftImagePreview, setDraftImagePreview] = useState('');
   const [selectedPostId, setSelectedPostId] = useState(1);
   const [likedPostIds, setLikedPostIds] = useState<number[]>(() => JSON.parse(localStorage.getItem('empathy-circle.liked-posts') || '[]'));
+  const [loading, setLoading] = useState(true);
+  const [notifications, setNotifications] = useState<{ id: number; type: string; icon: string; color: string; title: string; body: string; time: string; read: boolean }[]>([]);
+  const [notifyOpen, setNotifyOpen] = useState(false);
+  const [detailPost, setDetailPost] = useState<Post | null>(null);
+  const [refreshPulling, setRefreshPulling] = useState(false);
+  const [draftMood, setDraftMood] = useState('');
+  const moodOptions = ['被看见','有点疲惫','开心','焦虑','平静','感恩','孤独','充满希望','纠结','愤怒'];
+  const unreadCount = notifications.filter((n) => !n.read).length;
   const [feedSearch, setFeedSearch] = useState('');
   const [feedMood, setFeedMood] = useState<string | null>(null);
   const [feedFilter, setFeedFilter] = useState<'全部' | '已通过' | '需复核'>('全部');
@@ -47,7 +56,7 @@ export function SocialApp({ user, onLogout }: Props) {
   const visibleMoods = [...new Set(scopedPosts.map((post) => post.mood).filter(Boolean))].slice(0, 8);
   const reviewSummary = useMemo(() => ({ total: posts.length, pending: reviewTasks.filter((task) => task.status === '待处理').length, blocked: posts.filter((post) => post.review === '已拦截').length }), [posts, reviewTasks]);
 
-  useEffect(() => { api<AppState>('/state').then((serverState) => { setState(serverState); setApiOnline(true); setNotice('本地 API 已连接，数据由服务端持久化'); }).catch(() => { setApiOnline(false); setNotice('API 未连接，已切换到浏览器本地模式'); }); }, []);
+  useEffect(() => { api<AppState>('/state').then((serverState) => { setState(serverState); setApiOnline(true); setNotice('本地 API 已连接，数据由服务端持久化'); }).catch(() => { setApiOnline(false); setNotice('API 未连接，已切换到浏览器本地模式'); }).finally(() => setTimeout(() => setLoading(false), 600)); }, []);
   useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }, [state]);
   useEffect(() => { localStorage.setItem('empathy-circle.liked-posts', JSON.stringify(likedPostIds)); }, [likedPostIds]);
 
@@ -102,7 +111,8 @@ export function SocialApp({ user, onLogout }: Props) {
   }
 
   async function submitPost() {
-    const content = draft.trim(); if (!content) return; setDraft('');
+    const content = draft.trim(); if (!content) return; addNotification('post', '✏️', '#2e7c86', '发布成功', '你的动态已通过审核，同频用户和 AI 已生成回应');
+    setDraft('');
     try {
       const serverState = await api<AppState>('/posts', { method: 'POST', body: JSON.stringify({ text: content, visibility }) });
       const nextPosts = draftImagePreview && serverState.posts[0] ? [{ ...serverState.posts[0], image: draftImagePreview }, ...serverState.posts.slice(1)] : serverState.posts;
@@ -192,6 +202,7 @@ export function SocialApp({ user, onLogout }: Props) {
     const reply: Reply = { id: Date.now(), author: '我', role: '同频用户', text: content };
     setState({ ...state, posts: posts.map((post) => (post.id === postId ? { ...post, peerReplies: [reply, ...post.peerReplies] } : post)) });
     setCommentDraft(''); setNotice('同频回应已发布');
+    addNotification('comment', '💬', '#5f6448', '收到同频回应', '有人回复了你的动态');
   }
 
   function attachDraftImage(file: File | undefined) {
@@ -240,6 +251,13 @@ export function SocialApp({ user, onLogout }: Props) {
   }
 
   function saveBio() { localStorage.setItem('empathy-circle.bio', bio); setNotice('空间签名已保存'); }
+
+  function addNotification(type: string, icon: string, color: string, title: string, body: string) {
+    setNotifications((prev: any) => [{ id: Date.now(), type, icon, color, title, body, time: '刚刚', read: false }, ...prev].slice(0, 20));
+  }
+  function markAllRead() { setNotifications((prev) => prev.map((n) => ({ ...n, read: true }))); }
+  function handleRefresh() { setRefreshPulling(true); setTimeout(() => { setRefreshPulling(false); setNotice('动态已刷新'); }, 900); }
+  function openPostDetail(post: Post) { setDetailPost(post); setSelectedPostId(post.id); }
 
   function askAgent() {
     const content = agentPrompt.trim();
@@ -290,9 +308,25 @@ export function SocialApp({ user, onLogout }: Props) {
             </div>
           </section>
           <div className="feed-search-box"><Search size={15} /><input type="search" value={feedSearch} onChange={(e) => setFeedSearch(e.target.value)} placeholder="???????????" aria-label="????" />{feedSearch && <button type="button" className="feed-search-clear" onClick={() => setFeedSearch("")} aria-label="????">×</button>}</div>
-          <section className="feed-toolbar" aria-label="动态筛选"><div><span>今日回声</span><strong>{visiblePosts.length} 条正在发生</strong></div><div className="feed-filters">{(['全部', '已通过', '需复核'] as const).map((filter) => <button type="button" key={filter} className={feedFilter === filter ? 'active' : ''} onClick={() => setFeedFilter(filter)}>{filter}</button>)}</div>{visibleMoods.length > 1 && <div className="feed-mood-chips">{visibleMoods.map((mood) => <button type="button" key={mood} className={feedMood === mood ? "active" : ""} onClick={() => setFeedMood(feedMood === mood ? null : mood)}>{mood}{feedMood === mood ? " ×" : ""}</button>)}</div>}</section>
+          <div className={`pull-indicator${refreshPulling ? " pulling" : ""}`}>
+                <RefreshCw size={15} className="spin-icon" /><span>正在刷新...</span>
+              </div>
+              <section className="feed-toolbar" aria-label="动态筛选"><div><span>今日回声</span><strong>{visiblePosts.length} 条正在发生</strong></div><div className="feed-filters">{(['全部', '已通过', '需复核'] as const).map((filter) => <button type="button" key={filter} className={feedFilter === filter ? 'active' : ''} onClick={() => setFeedFilter(filter)}>{filter}</button>)}</div>{visibleMoods.length > 1 && <div className="feed-mood-chips">{visibleMoods.map((mood) => <button type="button" key={mood} className={feedMood === mood ? "active" : ""} onClick={() => setFeedMood(feedMood === mood ? null : mood)}>{mood}{feedMood === mood ? " ×" : ""}</button>)}</div>}</section>
           <section className="moments-list" aria-label="朋友圈动态">
-            {visiblePosts.map((post) => (
+            {loading ? Array.from({ length: 3 }).map((_, i) => (
+                <div className="skeleton-card" key={`sk-${i}`}>
+                  <div className="skeleton skeleton-avatar" />
+                  <div className="skeleton-body">
+                    <div className="skeleton skeleton-line wide" />
+                    <div className="skeleton skeleton-line medium" />
+                    <div className="skeleton skeleton-line short" />
+                  </div>
+                </div>
+              )) : visiblePosts.length === 0 ? (
+                <div className="no-results">
+                  <Search size={40} /><p>没有匹配的动态<br />试试调整筛选条件</p>
+                </div>
+              ) : visiblePosts.map((post) => (
               <article className={`moment-card ${post.id === selectedPostId ? 'focused' : ''}`} key={post.id} style={{ "--card-delay": visiblePosts.findIndex(p => p.id === post.id) } as React.CSSProperties} onClick={() => setSelectedPostId(post.id)}>
                 <div className="moment-avatar">{avatarFor(post.author)}</div>
                 <div className="moment-main">
@@ -330,7 +364,19 @@ export function SocialApp({ user, onLogout }: Props) {
       </aside>
       <button className="scroll-to-top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="????"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>
       {confirmAction && <ConfirmDialog title={confirmAction.title} message={confirmAction.message} onConfirm={() => { confirmAction.action(); setConfirmAction(null); }} onCancel={() => setConfirmAction(null)} />}
-      {notice && <div className="app-toast" role="status"><Sparkles size={16} /><span>{notice}</span></div>}
+      <div className="mobile-nav">
+            <nav>
+              <button className={activeView === '广场' ? 'active' : ''} onClick={() => setActiveView('广场')}><Home size={20} />广场</button>
+              <button className={activeView === '空间' ? 'active' : ''} onClick={() => setActiveView('空间')}><User size={20} />空间</button>
+              <button className={activeView === '智能体' ? 'active' : ''} onClick={() => setActiveView('智能体')}><Bot size={20} />AI</button>
+              <button onClick={() => setNotifyOpen(true)}>
+                <div className="notification-bell-wrap"><Bell size={20} />{unreadCount > 0 && <span className="badge">{unreadCount}</span>}</div>
+              </button>
+            </nav>
+          </div>
+          {notifyOpen && (<><div className="notify-drawer-overlay" onClick={() => setNotifyOpen(false)} /><div className="notify-drawer"><div className="notify-drawer-header"><h2>通知中心</h2>{unreadCount > 0 && <button onClick={markAllRead}>全部已读</button>}</div>{notifications.length === 0 ? (<div className="notify-drawer-empty"><Bell size={32} /><p>暂无通知</p></div>) : (<div className="notify-list">{notifications.map((n) => (<div key={n.id} className={`notify-item${n.read ? "" : " unread"}`} onClick={() => setNotifications((prev) => prev.map((nt) => nt.id === n.id ? { ...nt, read: true } : nt))}><div className="notify-dot" style={{ background: n.color }}>{n.icon}</div><div className="notify-item-body"><strong>{n.title}</strong><p>{n.body}</p><small>{n.time}</small></div></div>))}</div>)}</div></>)}
+          {detailPost && (<div className="post-detail-overlay" onClick={() => setDetailPost(null)}><div className="post-detail-card" onClick={e => e.stopPropagation()}><button className="post-detail-close" onClick={() => setDetailPost(null)}><X size={18} /></button><div className="post-detail-scroll"><div className="post-detail-header"><div className="moment-avatar">{detailPost.author.slice(0, 2)}</div><div><strong>{detailPost.author}</strong><span>{detailPost.visibility} · {detailPost.time}</span></div></div><p className="post-detail-text">{detailPost.text}</p>{detailPost.image && <img className="post-detail-image" src={detailPost.image} alt="" />}<div className="post-detail-meta"><span><ThumbsUp size={14} />{detailPost.likes} 认可</span><span><MessageCircle size={14} />{detailPost.peerReplies.length} 评论</span><span>{detailPost.mood} · {detailPost.topic}</span></div><div className="comments-panel"><h3>AI 回声</h3>{detailPost.aiReplies.map((r: Reply) => (<div className="comment-line" key={r.id}><strong>{r.author} <span>AI · {r.role}</span></strong><p>{r.text}</p></div>))}<h3 style={{ marginTop: 16 }}>同频回应 ({detailPost.peerReplies.length})</h3>{detailPost.peerReplies.map((r: Reply) => (<div className="comment-line" key={r.id}><strong>{r.author} <span>{r.role}</span></strong><p>{r.text}</p></div>))}</div></div></div></div>)}
+          {notice && <div className="app-toast" role="status"><Sparkles size={16} /><span>{notice}</span></div>}
     </main>
   );
 }
