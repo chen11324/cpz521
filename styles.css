@@ -777,3 +777,54 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { box-shadow: 
 .space-hero:hover .space-gradient { background: linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.6)); transition: background .4s ease; }
 
 .moment-card:hover .moment-image { transform: scale(1.03); }
+
+
+/* === Character count color transition === */
+.composer-status span:first-child { transition: color .25s ease, font-weight .2s ease; }
+.composer-status span:first-child.text-near-limit { color: #c4504a; font-weight: 900; }
+
+/* === Metric grid card hover === */
+.metric-grid div { transition: transform .2s ease, box-shadow .2s ease, background .15s ease; border-radius: 14px; padding: 3px 1px; }
+.metric-grid div:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(35,48,43,.06); }
+.metric-grid strong { transition: transform .2s ease, color .2s ease; }
+.metric-grid div:hover strong { transform: scale(1.08); color: var(--accent); }
+
+/* === Segmented control refined === */
+.segmented button { transition: background .2s ease, color .2s ease, box-shadow .22s ease, font-weight .2s ease; position: relative; }
+.segmented button.selected::after { content: ""; position: absolute; bottom: 3px; left: 50%; width: 20px; height: 3px; border-radius: 2px; background: var(--accent); transform: translateX(-50%) scaleX(0); transition: transform .25s cubic-bezier(.22,.9,.34,1); }
+.segmented button.selected::after { transform: translateX(-50%) scaleX(1); }
+
+/* === Privacy toggle refined === */
+.toggle-row { display: flex; align-items: center; gap: 12px; padding: 8px 4px; border-radius: 10px; transition: background .15s ease; cursor: pointer; }
+.toggle-row:hover { background: rgba(35,48,43,.03); }
+.toggle-row input[type="checkbox"] { width: 44px; height: 26px; border-radius: 999px; appearance: none; background: #d0d8d4; position: relative; transition: background .25s ease; cursor: pointer; flex-shrink: 0; }
+.toggle-row input[type="checkbox"]::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: white; box-shadow: 0 2px 6px rgba(0,0,0,.15); transition: transform .25s cubic-bezier(.22,.9,.34,1); }
+.toggle-row input[type="checkbox"]:checked { background: var(--accent); }
+.toggle-row input[type="checkbox"]:checked::after { transform: translateX(18px); }
+.toggle-row span { font-size: 13px; font-weight: 700; color: var(--ink); }
+
+/* === Admin nav section indicator dot === */
+.admin-sidebar nav button { position: relative; }
+.admin-sidebar nav button.active::before { content: ""; position: absolute; left: 4px; top: 50%; width: 4px; height: 4px; border-radius: 50%; background: currentColor; transform: translateY(-50%) scale(0); transition: transform .25s cubic-bezier(.22,.9,.34,1); }
+.admin-sidebar nav button.active::before { transform: translateY(-50%) scale(1); }
+
+/* === Button row gap === */
+.button-row { display: flex; gap: 8px; margin-top: 8px; }
+
+/* === Event row level indicator animation === */
+.event-row.blocked { border-left: 3px solid #c4504a; }
+.event-row.warning { border-left: 3px solid #e0a550; }
+.event-row:not(.blocked):not(.warning) { border-left: 3px solid #2f7567; }
+
+/* === AI result card entry === */
+.ai-result { animation: card-enter .35s ease both; }
+
+/* === Space stats hover === */
+.space-stats > div { transition: transform .2s ease; }
+.space-stats > div:hover { transform: translateY(-1px); }
+
+/* === Mobile tab indicator refinement === */
+@media (max-width: 940px) {
+  .admin-sidebar nav button.active::before { left: 50%; top: auto; bottom: 2px; width: 16px; height: 3px; border-radius: 2px; transform: translateX(-50%) scaleX(0); }
+  .admin-sidebar nav button.active::before { transform: translateX(-50%) scaleX(1); }
+}
