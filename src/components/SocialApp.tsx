@@ -2,8 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle, Bell, BellRing, Bot, Camera, BadgeCheck, CheckCircle2, ChevronLeft,
   EyeOff, Flame, Heart, HeartHandshake, Home, ImagePlus, LockKeyhole, LogOut,
-  Menu, MessageCircle, Radio, RefreshCw, Search, Send, ShieldCheck,
-  Sparkles, ThumbsUp, User, UserRoundCheck, UsersRound, X, XCircle,
+  Menu, MessageCircle, Moon, Radio, RefreshCw, Search, Send, ShieldCheck, SmilePlus,
+  Sparkles, Sun, ThumbsUp, User, UserRoundCheck, UsersRound, Volume2, VolumeX, X, XCircle,
 } from 'lucide-react';
 import type { ActiveView, AppState, Post, PrivacySettings, Reply, ReviewStatus, SessionUser, Visibility } from '../types';
 import { agentProfiles, circleProfiles, coverImages, STORAGE_KEY, themes } from '../constants';
@@ -37,6 +37,9 @@ export function SocialApp({ user, onLogout }: Props) {
   const [detailPost, setDetailPost] = useState<Post | null>(null);
   const [refreshPulling, setRefreshPulling] = useState(false);
   const [draftMood, setDraftMood] = useState('');
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('empathy-circle.dark') === '1');
+  const [soundOn, setSoundOn] = useState(() => localStorage.getItem('empathy-circle.sound') !== '0');
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const moodOptions = ['被看见','有点疲惫','开心','焦虑','平静','感恩','孤独','充满希望','纠结','愤怒'];
   const unreadCount = notifications.filter((n) => !n.read).length;
   const [feedSearch, setFeedSearch] = useState('');
@@ -56,9 +59,12 @@ export function SocialApp({ user, onLogout }: Props) {
   const visibleMoods = [...new Set(scopedPosts.map((post) => post.mood).filter(Boolean))].slice(0, 8);
   const reviewSummary = useMemo(() => ({ total: posts.length, pending: reviewTasks.filter((task) => task.status === '待处理').length, blocked: posts.filter((post) => post.review === '已拦截').length }), [posts, reviewTasks]);
 
+  useEffect(() => { const savedDark = localStorage.getItem('empathy-circle.dark') === '1'; if (savedDark) { setDarkMode(true); document.documentElement.setAttribute('data-theme', 'dark'); } }, []);
   useEffect(() => { api<AppState>('/state').then((serverState) => { setState(serverState); setApiOnline(true); setNotice('本地 API 已连接，数据由服务端持久化'); }).catch(() => { setApiOnline(false); setNotice('API 未连接，已切换到浏览器本地模式'); }).finally(() => setTimeout(() => setLoading(false), 600)); }, []);
   useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }, [state]);
   useEffect(() => { localStorage.setItem('empathy-circle.liked-posts', JSON.stringify(likedPostIds)); }, [likedPostIds]);
+  useEffect(() => { document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light'); localStorage.setItem('empathy-circle.dark', darkMode ? '1' : '0'); }, [darkMode]);
+  useEffect(() => { localStorage.setItem('empathy-circle.sound', soundOn ? '1' : '0'); }, [soundOn]);
 
   // Scroll-to-top visibility
   useEffect(() => {
@@ -111,7 +117,7 @@ export function SocialApp({ user, onLogout }: Props) {
   }
 
   async function submitPost() {
-    const content = draft.trim(); if (!content) return; addNotification('post', '✏️', '#2e7c86', '发布成功', '你的动态已通过审核，同频用户和 AI 已生成回应');
+    const content = draft.trim(); if (!content) return; playSound('post'); addNotification('post', '✏️', '#2e7c86', '发布成功', '你的动态已通过审核，同频用户和 AI 已生成回应');
     setDraft('');
     try {
       const serverState = await api<AppState>('/posts', { method: 'POST', body: JSON.stringify({ text: content, visibility }) });
@@ -202,7 +208,7 @@ export function SocialApp({ user, onLogout }: Props) {
     const reply: Reply = { id: Date.now(), author: '我', role: '同频用户', text: content };
     setState({ ...state, posts: posts.map((post) => (post.id === postId ? { ...post, peerReplies: [reply, ...post.peerReplies] } : post)) });
     setCommentDraft(''); setNotice('同频回应已发布');
-    addNotification('comment', '💬', '#5f6448', '收到同频回应', '有人回复了你的动态');
+    playSound('notify'); addNotification('comment', '💬', '#5f6448', '收到同频回应', '有人回复了你的动态');
   }
 
   function attachDraftImage(file: File | undefined) {
@@ -259,6 +265,28 @@ export function SocialApp({ user, onLogout }: Props) {
   function handleRefresh() { setRefreshPulling(true); setTimeout(() => { setRefreshPulling(false); setNotice('动态已刷新'); }, 900); }
   function openPostDetail(post: Post) { setDetailPost(post); setSelectedPostId(post.id); }
 
+  const moodChart = useMemo(() => {
+    const counts: Record<string, number> = {};
+    moodOptions.forEach(m => { counts[m] = 0; });
+    posts.forEach(p => { if (counts[p.mood] !== undefined) counts[p.mood]++; });
+    const max = Math.max(1, ...Object.values(counts));
+    return moodOptions.filter(m => counts[m] > 0).map(m => ({ mood: m, count: counts[m], pct: Math.round((counts[m] / max) * 100) })).sort((a, b) => b.count - a.count).slice(0, 5);
+  }, [posts]);
+
+  function playSound(type: string) {
+    if (!soundOn) return;
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      if (type === 'click') { osc.frequency.value = 800; gain.gain.value = 0.05; osc.start(); osc.stop(ctx.currentTime + 0.04); }
+      else if (type === 'like') { osc.frequency.value = 520; gain.gain.value = 0.06; osc.type = 'sine'; osc.start(); osc.frequency.linearRampToValueAtTime(780, ctx.currentTime + 0.08); osc.stop(ctx.currentTime + 0.1); }
+      else if (type === 'post') { osc.frequency.value = 440; gain.gain.value = 0.04; osc.type = 'triangle'; osc.start(); osc.frequency.linearRampToValueAtTime(660, ctx.currentTime + 0.12); osc.stop(ctx.currentTime + 0.15); }
+      else if (type === 'notify') { osc.frequency.value = 660; gain.gain.value = 0.05; osc.type = 'sine'; osc.start(); osc.stop(ctx.currentTime + 0.06); setTimeout(() => { const o2 = ctx.createOscillator(); const g2 = ctx.createGain(); o2.connect(g2); g2.connect(ctx.destination); o2.frequency.value = 880; g2.gain.value = 0.06; o2.type = 'sine'; o2.start(); o2.stop(ctx.currentTime + 0.08); }, 70); }
+    } catch (_) { /* audio not available */ }
+  }
+
   function askAgent() {
     const content = agentPrompt.trim();
     if (!content) return;
@@ -281,8 +309,22 @@ export function SocialApp({ user, onLogout }: Props) {
       <aside className="sidebar social-sidebar" aria-label="主导航">
         <div className="brand"><span className="brand-mark"><HeartHandshake size={22} /></span><div><strong>同频回声</strong><small>Empathy Circle</small></div></div>
         <nav className="nav-list">{(['广场', '空间', '智能体', '审核'] as ActiveView[]).map((view) => <button className={`nav-item ${activeView === view ? 'active' : ''}`} key={view} onClick={() => setActiveView(view)}>{view === '广场' && <MessageCircle size={18} />}{view === '空间' && <UsersRound size={18} />}{view === '智能体' && <Bot size={18} />}{view === '审核' && <ShieldCheck size={18} />}<span>{view}</span></button>)}</nav>
-        <div className="theme-panel"><span>空间装扮</span><div>{themes.map((theme, index) => <button className={`theme-dot ${theme.className} ${themeIndex === index ? 'picked' : ''}`} key={theme.name} title={theme.name} onClick={() => pickTheme(index)} />)}</div></div>
-        <div className="privacy-box"><LockKeyhole size={20} /><p>{user.name} · {user.phone}<br />匿名身份、人工复核和攻击防护已开启。</p><button className="text-action logout-action" onClick={onLogout}><LogOut size={16} />退出登录</button></div>
+        <div className="mood-chart" style={{ padding: "0 4px", marginBottom: 10 }}>
+              <span style={{ color: "var(--muted)", fontSize: 12, fontWeight: 800, display: "block", marginBottom: 8 }}>心情分布</span>
+              {moodChart.length === 0 ? <span style={{ color: "var(--muted)", fontSize: 12 }}>暂无数据</span> : moodChart.map(item => (
+                <div className="mood-bar-row" key={item.mood}>
+                  <span className="mood-bar-label">{item.mood}</span>
+                  <div className="mood-bar-track"><div className="mood-bar-fill" style={{ width: item.pct + "%" }} /></div>
+                  <span className="mood-bar-count">{item.count}</span>
+                </div>
+              ))}
+            </div>
+            <div className="theme-panel"><span>空间装扮</span><div>{themes.map((theme, index) => <button className={`theme-dot ${theme.className} ${themeIndex === index ? 'picked' : ''}`} key={theme.name} title={theme.name} onClick={() => pickTheme(index)} />)}</div></div>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 4 }}>
+              <button className="dark-mode-toggle" onClick={() => setDarkMode(!darkMode)} title={darkMode ? "切换到日间模式" : "切换到暗色模式"}>{darkMode ? <Sun size={17} /> : <Moon size={17} />}</button>
+              <button className="sound-toggle" onClick={() => setSoundOn(!soundOn)} title={soundOn ? "关闭音效" : "开启音效"}>{soundOn ? <Volume2 size={16} /> : <VolumeX size={16} />}<span>{soundOn ? "音效开" : "音效关"}</span></button>
+            </div>
+            <div className="privacy-box"><LockKeyhole size={20} /><p>{user.name} · {user.phone}<br />匿名身份、人工复核和攻击防护已开启。</p><button className="text-action logout-action" onClick={onLogout}><LogOut size={16} />退出登录</button></div>
       </aside>
 
       <section className="feed-panel social-feed">
@@ -332,8 +374,8 @@ export function SocialApp({ user, onLogout }: Props) {
                 <div className="moment-main">
                   <div className="moment-head"><div><strong>{post.author}</strong><span>{post.visibility} · {post.time}</span></div><span className={`state ${post.review === '已拦截' ? 'blocked' : post.review === '需复核' ? 'warning' : 'ok'}`}>{post.review}{post.risk > 40 && ` · ${post.risk}`}</span></div>
                   <p>{post.text}</p>
-                  <img className="moment-image" src={imageFor(post)} alt="" loading="lazy" />
-                  <div className="moment-meta"><span>{post.mood} · {post.topic}</span><button onClick={(e) => { e.stopPropagation(); toggleComments(post.id); }}><MessageCircle size={14} />{post.peerReplies.length}</button><button className={likedPostIds.includes(post.id) ? 'liked' : ''} onClick={(e) => { e.stopPropagation(); likePost(post.id); }}><ThumbsUp size={14} />{likedPostIds.includes(post.id) ? '已认可 ' : ''}{post.likes}</button></div>
+                  <img className="moment-image" src={imageFor(post)} alt="" loading="lazy" onClick={(e) => { e.stopPropagation(); setLightboxImage(imageFor(post)); }} />
+                  <div className="moment-meta"><span>{post.mood} · {post.topic}</span><button onClick={(e) => { e.stopPropagation(); toggleComments(post.id); }}><MessageCircle size={14} />{post.peerReplies.length}</button><div className="emoji-reactions">{["👍","❤️","😊","😢","🔥"].map(emoji => (<button key={emoji} className="emoji-btn" onClick={(e) => { e.stopPropagation(); if (emoji === "👍") { likePost(post.id); playSound("like"); } else { addNotification("emoji", emoji, "#5f6448", "表情回应", emoji + " 回应了动态"); playSound("like"); } }}>{emoji}</button>))}</div></div>
                 </div>
               </article>
             ))}
@@ -376,6 +418,7 @@ export function SocialApp({ user, onLogout }: Props) {
           </div>
           {notifyOpen && (<><div className="notify-drawer-overlay" onClick={() => setNotifyOpen(false)} /><div className="notify-drawer"><div className="notify-drawer-header"><h2>通知中心</h2>{unreadCount > 0 && <button onClick={markAllRead}>全部已读</button>}</div>{notifications.length === 0 ? (<div className="notify-drawer-empty"><Bell size={32} /><p>暂无通知</p></div>) : (<div className="notify-list">{notifications.map((n) => (<div key={n.id} className={`notify-item${n.read ? "" : " unread"}`} onClick={() => setNotifications((prev) => prev.map((nt) => nt.id === n.id ? { ...nt, read: true } : nt))}><div className="notify-dot" style={{ background: n.color }}>{n.icon}</div><div className="notify-item-body"><strong>{n.title}</strong><p>{n.body}</p><small>{n.time}</small></div></div>))}</div>)}</div></>)}
           {detailPost && (<div className="post-detail-overlay" onClick={() => setDetailPost(null)}><div className="post-detail-card" onClick={e => e.stopPropagation()}><button className="post-detail-close" onClick={() => setDetailPost(null)}><X size={18} /></button><div className="post-detail-scroll"><div className="post-detail-header"><div className="moment-avatar">{detailPost.author.slice(0, 2)}</div><div><strong>{detailPost.author}</strong><span>{detailPost.visibility} · {detailPost.time}</span></div></div><p className="post-detail-text">{detailPost.text}</p>{detailPost.image && <img className="post-detail-image" src={detailPost.image} alt="" />}<div className="post-detail-meta"><span><ThumbsUp size={14} />{detailPost.likes} 认可</span><span><MessageCircle size={14} />{detailPost.peerReplies.length} 评论</span><span>{detailPost.mood} · {detailPost.topic}</span></div><div className="comments-panel"><h3>AI 回声</h3>{detailPost.aiReplies.map((r: Reply) => (<div className="comment-line" key={r.id}><strong>{r.author} <span>AI · {r.role}</span></strong><p>{r.text}</p></div>))}<h3 style={{ marginTop: 16 }}>同频回应 ({detailPost.peerReplies.length})</h3>{detailPost.peerReplies.map((r: Reply) => (<div className="comment-line" key={r.id}><strong>{r.author} <span>{r.role}</span></strong><p>{r.text}</p></div>))}</div></div></div></div>)}
+          {lightboxImage && (<div className="image-lightbox-overlay" onClick={() => setLightboxImage(null)}><button className="lightbox-close" onClick={() => setLightboxImage(null)}><X size={20} /></button><img src={lightboxImage} alt="" onClick={e => e.stopPropagation()} /></div>)}
           {notice && <div className="app-toast" role="status"><Sparkles size={16} /><span>{notice}</span></div>}
     </main>
   );

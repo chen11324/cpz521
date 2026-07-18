@@ -1391,3 +1391,322 @@ body::before {
   .skeleton { animation: none; background: rgba(35,48,43,.05); }
   .moment-main, .circle-card, .composer, .notify-drawer, .post-detail-card { transition: none; animation: none; }
 }
+
+
+/* ================================================================
+   2026-07-18 v3 — 暗色模式·心情图表·表情回应·图片灯箱·音效
+   ================================================================ */
+
+/* ------ 暗色模式 CSS 变量 ------ */
+[data-theme="dark"] {
+  --bg-primary: #161b1a;
+  --bg-secondary: #1d2422;
+  --bg-card: rgba(30,38,36,.85);
+  --bg-card-hover: rgba(38,48,45,.9);
+  --bg-input: rgba(22,27,25,.7);
+  --text-primary: #dce4e0;
+  --text-secondary: #96a39e;
+  --text-muted: #6e7b75;
+  --border-subtle: rgba(255,255,255,.06);
+  --border-card: rgba(255,255,255,.08);
+  --shadow-card: 0 8px 32px rgba(0,0,0,.18), 0 1px 4px rgba(0,0,0,.1);
+  --shadow-elevated: 0 16px 48px rgba(0,0,0,.25);
+  --accent-glow: rgba(47,117,103,.25);
+  color-scheme: dark;
+}
+[data-theme="dark"] body {
+  background: linear-gradient(135deg, #0e1513 0%, #161b1a 30%, #121916 60%, #151b18 100%);
+  background-attachment: fixed;
+  color: var(--text-primary);
+}
+[data-theme="dark"] body::before {
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 10%, rgba(47,117,103,.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 85%, rgba(200,160,80,.04) 0%, transparent 50%);
+}
+[data-theme="dark"] .sidebar,
+[data-theme="dark"] .insight-panel {
+  background: rgba(22,27,25,.78);
+  backdrop-filter: blur(20px) saturate(1.2);
+  border-color: var(--border-card);
+}
+[data-theme="dark"] .moment-main {
+  background: rgba(30,38,36,.7);
+  border-color: var(--border-card);
+}
+[data-theme="dark"] .moment-card:hover { background: rgba(38,48,45,.25); }
+[data-theme="dark"] .composer,
+[data-theme="dark"] .profile-card,
+[data-theme="dark"] .ai-card,
+[data-theme="dark"] .review-card,
+[data-theme="dark"] .peer-card,
+[data-theme="dark"] .review-task,
+[data-theme="dark"] .info-card,
+[data-theme="dark"] .space-editor {
+  background: var(--bg-card);
+  border-color: var(--border-card);
+  box-shadow: var(--shadow-card);
+}
+[data-theme="dark"] .composer-body textarea,
+[data-theme="dark"] .comment-composer input,
+[data-theme="dark"] .settings-grid input {
+  background: var(--bg-input);
+  border-color: var(--border-card);
+  color: var(--text-primary);
+}
+[data-theme="dark"] .nav-item { color: var(--text-secondary); }
+[data-theme="dark"] .nav-item.active,
+[data-theme="dark"] .nav-item:hover { background: rgba(47,117,103,.15); color: #8cc9b8; }
+[data-theme="dark"] .segmented { background: rgba(255,255,255,.06); }
+[data-theme="dark"] .feed-toolbar strong { color: var(--text-primary); }
+[data-theme="dark"] .feed-toolbar span { color: var(--text-muted); }
+[data-theme="dark"] .moment-main p { color: var(--text-primary); }
+[data-theme="dark"] .comment-line { background: rgba(30,38,36,.6); border-color: var(--border-subtle); }
+[data-theme="dark"] .comment-line:hover { background: rgba(38,48,45,.7); }
+[data-theme="dark"] .post-detail-card { background: rgba(22,27,25,.94); }
+[data-theme="dark"] .notify-drawer { background: rgba(22,27,25,.94); }
+[data-theme="dark"] .notify-drawer-overlay { background: rgba(0,0,0,.3); }
+[data-theme="dark"] .post-detail-overlay { background: rgba(0,0,0,.35); }
+[data-theme="dark"] .admin-sidebar { background: rgba(22,27,25,.82); }
+[data-theme="dark"] .admin-panel { background: rgba(22,27,25,.6); }
+[data-theme="dark"] .theme-panel { background: rgba(255,255,255,.04); }
+[data-theme="dark"] .feed-search-box { background: var(--bg-input); border-color: var(--border-card); }
+[data-theme="dark"] .feed-search-box input { color: var(--text-primary); }
+[data-theme="dark"] .mood-chip { background: rgba(255,255,255,.05); border-color: var(--border-card); color: var(--text-secondary); }
+[data-theme="dark"] .mood-chip:hover { border-color: var(--accent); color: #8cc9b8; }
+[data-theme="dark"] .circle-card { background: rgba(30,38,36,.6); border-color: var(--border-card); }
+[data-theme="dark"] .circle-join-btn { color: #8cc9b8; border-color: #8cc9b8; }
+[data-theme="dark"] .event-row { background: rgba(30,38,36,.5); }
+[data-theme="dark"] .account-table article { background: rgba(30,38,36,.5); }
+[data-theme="dark"] .permission-grid article { background: rgba(30,38,36,.5); }
+[data-theme="dark"] .confirm-dialog { background: rgba(22,27,25,.94); }
+[data-theme="dark"] .confirm-cancel { background: rgba(255,255,255,.08); color: var(--text-secondary); }
+[data-theme="dark"] .mobile-nav { background: rgba(22,27,25,.9); border-color: var(--border-card); }
+[data-theme="dark"] .space-hero { box-shadow: var(--shadow-elevated); }
+[data-theme="dark"] .privacy-box { color: #8cc9b8; }
+[data-theme="dark"] .skeleton { background: linear-gradient(90deg, rgba(255,255,255,.04) 25%, rgba(255,255,255,.07) 37%, rgba(255,255,255,.04) 63%); background-size: 400% 100%; }
+
+/* ------ 心情分布图（纯CSS） ------ */
+.mood-chart { display: grid; gap: 8px; padding: 6px 0; }
+.mood-bar-row { display: grid; grid-template-columns: 72px 1fr 36px; gap: 10px; align-items: center; }
+.mood-bar-label { color: var(--text-secondary); font-size: 12px; font-weight: 700; text-align: right; }
+.mood-bar-track { height: 28px; border-radius: 8px; background: rgba(35,48,43,.06); overflow: hidden; position: relative; }
+[data-theme="dark"] .mood-bar-track { background: rgba(255,255,255,.05); }
+.mood-bar-fill {
+  height: 100%; border-radius: 8px; min-width: 4px;
+  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 60%, #f1c27d));
+  transition: width .6s cubic-bezier(.22,.9,.34,1);
+  animation: bar-grow .5s ease both;
+}
+@keyframes bar-grow { from { width: 0 !important; } }
+.mood-bar-count { color: var(--ink); font-size: 13px; font-weight: 900; }
+[data-theme="dark"] .mood-bar-count { color: var(--text-primary); }
+
+/* ------ 表情回应 ------ */
+.emoji-reactions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.emoji-btn {
+  min-width: 34px; min-height: 30px; display: flex; align-items: center; justify-content: center;
+  gap: 3px; padding: 0 8px; border-radius: 999px; font-size: 14px;
+  background: rgba(35,48,43,.04); border: 1px solid transparent;
+  transition: all .15s ease; cursor: pointer;
+}
+.emoji-btn:hover { background: rgba(35,48,43,.08); transform: scale(1.08); }
+.emoji-btn.active { background: color-mix(in srgb, var(--accent) 14%, transparent); border-color: var(--accent); }
+.emoji-btn .count { font-size: 11px; color: var(--text-muted); font-weight: 700; }
+[data-theme="dark"] .emoji-btn { background: rgba(255,255,255,.04); }
+[data-theme="dark"] .emoji-btn:hover { background: rgba(255,255,255,.08); }
+
+/* ------ 图片灯箱 ------ */
+.image-lightbox-overlay {
+  position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.88);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  display: grid; place-items: center; padding: 24px;
+  animation: overlay-in .2s ease both;
+  cursor: pointer;
+}
+.image-lightbox-overlay img {
+  max-width: 92vw; max-height: 88vh; border-radius: 14px;
+  box-shadow: 0 24px 80px rgba(0,0,0,.4);
+  animation: detail-in .3s cubic-bezier(.22,.9,.34,1) both;
+  cursor: default;
+}
+.lightbox-close {
+  position: absolute; top: 20px; right: 20px; z-index: 2;
+  width: 44px; height: 44px; display: grid; place-items: center;
+  border-radius: 999px; background: rgba(255,255,255,.12);
+  color: white; border: 1px solid rgba(255,255,255,.15);
+  font-size: 20px; transition: background .15s ease;
+}
+.lightbox-close:hover { background: rgba(255,255,255,.22); }
+
+/* ------ 音效开关 ------ */
+.sound-toggle {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  border-radius: 12px; background: rgba(35,48,43,.04);
+  color: var(--text-muted); font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: background .15s ease;
+}
+.sound-toggle:hover { background: rgba(35,48,43,.08); }
+[data-theme="dark"] .sound-toggle { background: rgba(255,255,255,.04); }
+[data-theme="dark"] .sound-toggle:hover { background: rgba(255,255,255,.08); }
+
+/* ------ 暗色模式切换按钮 ------ */
+.dark-mode-toggle {
+  width: 38px; height: 38px; display: grid; place-items: center;
+  border-radius: 12px; background: rgba(35,48,43,.06);
+  color: var(--text-secondary); transition: all .15s ease; cursor: pointer;
+}
+.dark-mode-toggle:hover { background: rgba(35,48,43,.12); color: var(--ink); }
+[data-theme="dark"] .dark-mode-toggle { background: rgba(255,255,255,.06); color: var(--text-secondary); }
+[data-theme="dark"] .dark-mode-toggle:hover { background: rgba(255,255,255,.12); color: var(--text-primary); }
+
+/* ------ 图片可点击提示 ------ */
+.moment-image { cursor: pointer; transition: transform .2s ease, box-shadow .2s ease; }
+.moment-image:hover { transform: scale(1.02); box-shadow: 0 8px 24px rgba(35,48,43,.12); }
+[data-theme="dark"] .moment-image:hover { box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+
+
+/* ================================================================
+   2026-07-18 v3 - 暗色模式 + 心情图表 + 表情回应 + 图片灯箱 + 音效
+   ================================================================ */
+
+/* ------ 暗色模式 ------ */
+[data-theme="dark"] { color-scheme: dark; }
+[data-theme="dark"] body {
+  background: linear-gradient(135deg, #0e1513 0%, #161b1a 30%, #121916 60%, #151b18 100%);
+  background-attachment: fixed;
+  color: #dce4e0;
+}
+[data-theme="dark"] body::before {
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 10%, rgba(47,117,103,.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 85%, rgba(200,160,80,.04) 0%, transparent 50%);
+}
+[data-theme="dark"] .sidebar,
+[data-theme="dark"] .insight-panel {
+  background: rgba(22,27,25,.78); backdrop-filter: blur(20px) saturate(1.2);
+  border-color: rgba(255,255,255,.08);
+}
+[data-theme="dark"] .moment-main,
+[data-theme="dark"] .composer,
+[data-theme="dark"] .profile-card,
+[data-theme="dark"] .ai-card,
+[data-theme="dark"] .review-card,
+[data-theme="dark"] .peer-card,
+[data-theme="dark"] .review-task,
+[data-theme="dark"] .info-card,
+[data-theme="dark"] .space-editor {
+  background: rgba(30,38,36,.7); border-color: rgba(255,255,255,.08);
+  box-shadow: 0 8px 32px rgba(0,0,0,.18);
+}
+[data-theme="dark"] .moment-card:hover { background: rgba(38,48,45,.25); }
+[data-theme="dark"] .composer-body textarea,
+[data-theme="dark"] .comment-composer input,
+[data-theme="dark"] .feed-search-box { background: rgba(22,27,25,.7); border-color: rgba(255,255,255,.08); color: #dce4e0; }
+[data-theme="dark"] .feed-search-box input { color: #dce4e0; }
+[data-theme="dark"] .nav-item { color: #96a39e; }
+[data-theme="dark"] .nav-item.active,
+[data-theme="dark"] .nav-item:hover { background: rgba(47,117,103,.15); color: #8cc9b8; }
+[data-theme="dark"] .segmented { background: rgba(255,255,255,.06); }
+[data-theme="dark"] .feed-toolbar strong { color: #dce4e0; }
+[data-theme="dark"] .moment-main p { color: #dce4e0; }
+[data-theme="dark"] .comment-line { background: rgba(30,38,36,.6); border-color: rgba(255,255,255,.05); }
+[data-theme="dark"] .comment-line:hover { background: rgba(38,48,45,.7); }
+[data-theme="dark"] .post-detail-card,
+[data-theme="dark"] .notify-drawer { background: rgba(22,27,25,.94); }
+[data-theme="dark"] .notify-drawer-overlay,
+[data-theme="dark"] .post-detail-overlay { background: rgba(0,0,0,.35); }
+[data-theme="dark"] .admin-sidebar { background: rgba(22,27,25,.82); }
+[data-theme="dark"] .admin-panel { background: rgba(22,27,25,.6); }
+[data-theme="dark"] .theme-panel { background: rgba(255,255,255,.04); }
+[data-theme="dark"] .mood-chip { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.1); color: #96a39e; }
+[data-theme="dark"] .mood-chip:hover { border-color: var(--accent); }
+[data-theme="dark"] .circle-card { background: rgba(30,38,36,.6); border-color: rgba(255,255,255,.08); }
+[data-theme="dark"] .event-row { background: rgba(30,38,36,.5); }
+[data-theme="dark"] .account-table article { background: rgba(30,38,36,.5); }
+[data-theme="dark"] .permission-grid article { background: rgba(30,38,36,.5); }
+[data-theme="dark"] .confirm-dialog { background: rgba(22,27,25,.94); }
+[data-theme="dark"] .confirm-cancel { background: rgba(255,255,255,.08); color: #96a39e; }
+[data-theme="dark"] .mobile-nav { background: rgba(22,27,25,.9); border-color: rgba(255,255,255,.08); }
+[data-theme="dark"] .privacy-box { color: #8cc9b8; }
+[data-theme="dark"] .skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,.04) 25%, rgba(255,255,255,.07) 37%, rgba(255,255,255,.04) 63%);
+  background-size: 400% 100%;
+}
+[data-theme="dark"] .mood-bar-track { background: rgba(255,255,255,.05); }
+[data-theme="dark"] .mood-bar-count { color: #dce4e0; }
+[data-theme="dark"] .emoji-btn { background: rgba(255,255,255,.04); }
+[data-theme="dark"] .emoji-btn:hover { background: rgba(255,255,255,.08); }
+[data-theme="dark"] .moment-image:hover { box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+[data-theme="dark"] .dark-mode-toggle { background: rgba(255,255,255,.06); color: #96a39e; }
+[data-theme="dark"] .dark-mode-toggle:hover { background: rgba(255,255,255,.12); color: #dce4e0; }
+[data-theme="dark"] .sound-toggle { background: rgba(255,255,255,.04); }
+[data-theme="dark"] .sound-toggle:hover { background: rgba(255,255,255,.08); }
+
+/* ------ 心情分布图 ------ */
+.mood-chart { display: grid; gap: 8px; padding: 6px 0; }
+.mood-bar-row { display: grid; grid-template-columns: 72px 1fr 36px; gap: 10px; align-items: center; }
+.mood-bar-label { color: #6e7b75; font-size: 12px; font-weight: 700; text-align: right; }
+.mood-bar-track { height: 28px; border-radius: 8px; background: rgba(35,48,43,.06); overflow: hidden; position: relative; }
+.mood-bar-fill {
+  height: 100%; border-radius: 8px; min-width: 4px;
+  background: linear-gradient(90deg, var(--accent), rgba(223,119,95,.6));
+  transition: width .6s cubic-bezier(.22,.9,.34,1);
+  animation: bar-grow .5s ease both;
+}
+@keyframes bar-grow { from { width: 0 !important; } }
+.mood-bar-count { color: var(--ink); font-size: 13px; font-weight: 900; }
+
+/* ------ 表情回应 ------ */
+.emoji-reactions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.emoji-btn {
+  min-width: 34px; min-height: 30px; display: flex; align-items: center; justify-content: center;
+  gap: 3px; padding: 0 8px; border-radius: 999px; font-size: 14px;
+  background: rgba(35,48,43,.04); border: 1px solid transparent;
+  transition: all .15s ease; cursor: pointer;
+}
+.emoji-btn:hover { background: rgba(35,48,43,.1); transform: scale(1.08); }
+.emoji-btn.active { background: rgba(47,117,103,.12); border-color: var(--accent); }
+.emoji-btn .count { font-size: 11px; color: #6e7b75; font-weight: 700; }
+
+/* ------ 图片灯箱 ------ */
+.image-lightbox-overlay {
+  position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.88);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  display: grid; place-items: center; padding: 24px;
+  animation: overlay-in .2s ease both; cursor: pointer;
+}
+.image-lightbox-overlay img {
+  max-width: 92vw; max-height: 88vh; border-radius: 14px;
+  box-shadow: 0 24px 80px rgba(0,0,0,.4);
+  animation: detail-in .3s cubic-bezier(.22,.9,.34,1) both; cursor: default;
+}
+.lightbox-close {
+  position: absolute; top: 20px; right: 20px; z-index: 2;
+  width: 44px; height: 44px; display: grid; place-items: center;
+  border-radius: 999px; background: rgba(255,255,255,.12);
+  color: white; border: 1px solid rgba(255,255,255,.15); font-size: 18px;
+  transition: background .15s ease; cursor: pointer;
+}
+.lightbox-close:hover { background: rgba(255,255,255,.22); }
+
+/* ------ 暗色模式切换 ------ */
+.dark-mode-toggle {
+  width: 38px; height: 38px; display: grid; place-items: center;
+  border-radius: 12px; background: rgba(35,48,43,.06); color: #6e7b75;
+  transition: all .15s ease; cursor: pointer; border: 0;
+}
+.dark-mode-toggle:hover { background: rgba(35,48,43,.12); color: var(--ink); }
+
+/* ------ 音效开关 ------ */
+.sound-toggle {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  border-radius: 12px; background: rgba(35,48,43,.04); color: #6e7b75;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  transition: background .15s ease;
+}
+.sound-toggle:hover { background: rgba(35,48,43,.08); }
+
+/* ------ 图片hover提示 ------ */
+.moment-image { cursor: pointer; transition: transform .2s ease, box-shadow .2s ease; }
+.moment-image:hover { transform: scale(1.02); box-shadow: 0 8px 24px rgba(35,48,43,.12); }
