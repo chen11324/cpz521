@@ -130,6 +130,10 @@ export function SocialApp({ user, onLogout }: Props) {
     setNotice(`审核任务已更新为：${status}`);
   }
 
+  function requestReport(postId: number) {
+    setConfirmAction({ title: '??????', message: '????????????????????????', action: () => reportPost(postId) });
+  }
+
   async function reportPost(postId: number) {
     try { setState(await api<AppState>('/reports', { method: 'POST', body: JSON.stringify({ postId }) })); setApiOnline(true); }
     catch {
