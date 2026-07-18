@@ -8,3 +8,10 @@ index-*.css
 _fix.cjs
 store.json
 ~$*.docx
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
