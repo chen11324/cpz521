@@ -6,6 +6,7 @@ import { AdminApp } from './components/AdminApp';
 import { BrandCursor } from './components/BrandCursor';
 
 export function App() {
+  const [transitioning, setTransitioning] = useState(false);
   const [user, setUser] = useState<SessionUser | null>(() => {
     try {
       const saved = localStorage.getItem('empathy-circle.user');
@@ -17,7 +18,8 @@ export function App() {
 
   function login(nextUser: SessionUser) {
     localStorage.setItem('empathy-circle.user', JSON.stringify(nextUser));
-    setUser(nextUser);
+    setTransitioning(true);
+    setTimeout(() => { setUser(nextUser); setTransitioning(false); }, 420);
   }
 
   function logout() {
@@ -41,5 +43,5 @@ export function App() {
       ? <AdminApp user={user} onLogout={logout} />
       : <SocialApp user={user} onLogout={logout} />;
 
-  return <><BrandCursor />{content}</>;
+  return <><BrandCursor />{transitioning && <div className="app-transition" aria-hidden="true"><div className="app-transition-core"><span /><span /><span /></div></div>}{content}</>;
 }

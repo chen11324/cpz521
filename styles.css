@@ -723,3 +723,45 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .feed-toolbar { animation: feed-content-enter .35s ease .05s both; }
 .moments-list { animation: feed-content-enter .4s ease .1s both; }
 @keyframes feed-content-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+
+/* === Login transition === */
+.app-transition { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; background: radial-gradient(circle at 50% 40%, rgba(47,117,103,.18), #f5f7f4); animation: transition-fade .42s ease both; pointer-events: all; }
+.app-transition-core { display: flex; gap: 10px; }
+.app-transition-core span { width: 12px; height: 12px; border-radius: 50%; background: var(--accent, #2f7567); animation: transition-dot .6s ease-in-out infinite; }
+.app-transition-core span:nth-child(1) { animation-delay: 0s; }
+.app-transition-core span:nth-child(2) { animation-delay: .12s; }
+.app-transition-core span:nth-child(3) { animation-delay: .24s; }
+@keyframes transition-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes transition-dot { 0%, 100% { opacity: .35; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.15); } }
+
+/* === Keyboard focus visibility === */
+*:focus-visible { outline: 2px solid var(--accent, #2f7567); outline-offset: 2px; border-radius: 4px; }
+button:focus-visible, a:focus-visible, [role="tab"]:focus-visible { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent); }
+input:focus-visible, textarea:focus-visible, select:focus-visible { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); border-color: var(--accent); }
+
+/* === Empty state polish === */
+.empty-state { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: clamp(40px, 10vw, 80px) 16px; border: 2px dashed #dbe3df; border-radius: 20px; color: #88948e; background: #f9fbf9; text-align: center; font-size: 14px; }
+.empty-state svg { color: #b4c2bc; opacity: .7; }
+
+/* === Toast enhancement: auto-dismiss animation === */
+.app-toast { animation: toast-in .32s cubic-bezier(.22,.9,.34,1) both; }
+.app-toast.toast-out { animation: toast-out .28s ease forwards; }
+@keyframes toast-out { to { opacity: 0; transform: translateY(8px) scale(.94); } }
+
+/* === Review risk badge pulse === */
+.risk-badge { animation: risk-pulse 3s ease-in-out infinite; }
+@keyframes risk-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(185,75,75,.12); } 50% { box-shadow: 0 0 0 6px rgba(185,75,75,.04); } }
+
+/* === Security event row hover === */
+.event-row { transition: background .2s ease, transform .15s ease; }
+.event-row:hover { background: rgba(35,48,43,.03); transform: translateX(2px); }
+
+/* === Reduced motion === */
+@media (prefers-reduced-motion: reduce) {
+  .app-transition { animation: none; }
+  .app-transition-core span { animation: none; opacity: .6; }
+  .risk-badge { animation: none; }
+  .app-toast { animation-duration: 0s; }
+  .app-toast.toast-out { animation-duration: 0s; }
+}
