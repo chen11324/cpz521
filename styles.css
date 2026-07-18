@@ -966,3 +966,27 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { box-shadow: 
 .error-boundary-card h1 { margin: 0; font-size: 24px; color: #1e332d; }
 .error-boundary-card p { margin: 0; color: #6e7b75; line-height: 1.7; }
 .error-boundary-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 4px; }
+
+/* === Feed search box === */
+.feed-search-box { display: flex; align-items: center; gap: 8px; padding: 0 14px; border: 1px solid rgba(35,48,43,.1); border-radius: 14px; background: rgba(255,255,255,.7); margin-bottom: 10px; max-width: 380px; transition: border-color .2s ease, box-shadow .2s ease; }
+.feed-search-box:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent); }
+.feed-search-box svg { color: #9aa7a2; flex-shrink: 0; }
+.feed-search-box input { flex: 1; min-height: 38px; border: 0; outline: none; background: transparent; color: var(--ink); font-size: 13px; }
+.feed-search-box input::placeholder { color: #a3b0ab; }
+.feed-search-clear { flex-shrink: 0; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; color: #88948e; background: rgba(35,48,43,.06); font-size: 14px; cursor: pointer; transition: background .15s ease; }
+.feed-search-clear:hover { background: rgba(35,48,43,.14); color: var(--ink); }
+
+/* === Feed mood chips === */
+.feed-mood-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.feed-mood-chips button { min-height: 28px; padding: 0 11px; border: 1px solid rgba(35,48,43,.1); border-radius: 999px; color: #62716b; background: rgba(255,255,255,.6); font-size: 12px; font-weight: 700; white-space: nowrap; transition: background .2s ease, border-color .2s ease, color .2s ease, transform .15s ease; }
+.feed-mood-chips button:hover { background: #fff; border-color: var(--accent); }
+.feed-mood-chips button.active { color: white; background: var(--accent); border-color: var(--accent); box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 24%, transparent); }
+.feed-mood-chips button:active { transform: scale(.94); }
+
+/* === Feed toolbar top row === */
+.feed-toolbar { display: flex; flex-direction: column; gap: 12px; }
+.feed-toolbar > div:first-child { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+@media (max-width: 560px) {
+  .feed-toolbar > div:first-child { flex-direction: column; align-items: flex-start; }
+  .feed-search-box { max-width: 100%; width: 100%; }
+}

@@ -29,6 +29,8 @@ export function SocialApp({ user, onLogout }: Props) {
   const [draftImagePreview, setDraftImagePreview] = useState('');
   const [selectedPostId, setSelectedPostId] = useState(1);
   const [likedPostIds, setLikedPostIds] = useState<number[]>(() => JSON.parse(localStorage.getItem('empathy-circle.liked-posts') || '[]'));
+  const [feedSearch, setFeedSearch] = useState('');
+  const [feedMood, setFeedMood] = useState<string | null>(null);
   const [feedFilter, setFeedFilter] = useState<'全部' | '已通过' | '需复核'>('全部');
   const [notice, setNotice] = useState('正在连接本地 API 服务...');
   const [apiOnline, setApiOnline] = useState(false);
@@ -40,6 +42,7 @@ export function SocialApp({ user, onLogout }: Props) {
   const scopedPosts = activeView === '空间' ? personalPosts : posts;
   const visiblePosts = scopedPosts.filter((post) => feedFilter === '全部' || post.review === feedFilter);
   const selectedAgent = agentProfiles.find((agent) => agent.name === selectedAgentName) ?? agentProfiles[0];
+  const visibleMoods = [...new Set(scopedPosts.map((post) => post.mood).filter(Boolean))].slice(0, 8);
   const reviewSummary = useMemo(() => ({ total: posts.length, pending: reviewTasks.filter((task) => task.status === '待处理').length, blocked: posts.filter((post) => post.review === '已拦截').length }), [posts, reviewTasks]);
 
   useEffect(() => { api<AppState>('/state').then((serverState) => { setState(serverState); setApiOnline(true); setNotice('本地 API 已连接，数据由服务端持久化'); }).catch(() => { setApiOnline(false); setNotice('API 未连接，已切换到浏览器本地模式'); }); }, []);
@@ -280,7 +283,8 @@ export function SocialApp({ user, onLogout }: Props) {
               <div className="composer-actions"><div className="hint-list"><button className="mini-action" onClick={() => draftImageRef.current?.click()}><ImagePlus size={14} />{draftImageName || '配图'}</button><span>同频可见</span><span>AI 回声</span></div><button className="primary-button" disabled={!draft.trim()} onClick={submitPost}><Send size={17} />{draft.trim() ? '发布回声' : '写点什么吧'}</button></div>
             </div>
           </section>
-          <section className="feed-toolbar" aria-label="动态筛选"><div><span>今日回声</span><strong>{visiblePosts.length} 条正在发生</strong></div><div className="feed-filters">{(['全部', '已通过', '需复核'] as const).map((filter) => <button type="button" key={filter} className={feedFilter === filter ? 'active' : ''} onClick={() => setFeedFilter(filter)}>{filter}</button>)}</div></section>
+          <div className="feed-search-box"><Search size={15} /><input type="search" value={feedSearch} onChange={(e) => setFeedSearch(e.target.value)} placeholder="???????????" aria-label="????" />{feedSearch && <button type="button" className="feed-search-clear" onClick={() => setFeedSearch("")} aria-label="????">×</button>}</div>
+          <section className="feed-toolbar" aria-label="动态筛选"><div><span>今日回声</span><strong>{visiblePosts.length} 条正在发生</strong></div><div className="feed-filters">{(['全部', '已通过', '需复核'] as const).map((filter) => <button type="button" key={filter} className={feedFilter === filter ? 'active' : ''} onClick={() => setFeedFilter(filter)}>{filter}</button>)}</div>{visibleMoods.length > 1 && <div className="feed-mood-chips">{visibleMoods.map((mood) => <button type="button" key={mood} className={feedMood === mood ? "active" : ""} onClick={() => setFeedMood(feedMood === mood ? null : mood)}>{mood}{feedMood === mood ? " ×" : ""}</button>)}</div>}</section>
           <section className="moments-list" aria-label="朋友圈动态">
             {visiblePosts.map((post) => (
               <article className={`moment-card ${post.id === selectedPostId ? 'focused' : ''}`} key={post.id} style={{ "--card-delay": visiblePosts.findIndex(p => p.id === post.id) } as React.CSSProperties} onClick={() => setSelectedPostId(post.id)}>
