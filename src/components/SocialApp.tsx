@@ -17,6 +17,8 @@ export function SocialApp({ user, onLogout }: Props) {
   const [state, setState] = useState<AppState>(() => readCachedState());
   const [activeView, setActiveView] = useState<ActiveView>('广场');
   const [circleView, setCircleView] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(5);
   const [themeIndex, setThemeIndex] = useState(0);
   const [customCover, setCustomCover] = useState<string | null>(() => localStorage.getItem('empathy-circle.cover'));
   const [visibility, setVisibility] = useState<Visibility>(state.privacy.anonymousDefault ? '匿名' : '实名');
@@ -56,6 +58,7 @@ export function SocialApp({ user, onLogout }: Props) {
   const personalPosts = posts.filter((post) => post.author === '我' || post.author.startsWith('匿名用户'));
   const scopedPosts = activeView === '空间' ? personalPosts : posts;
   const visiblePosts = scopedPosts.filter((post) => feedFilter === '全部' || post.review === feedFilter);
+  useEffect(() => { setVisibleCount(5); }, [feedFilter, feedSearch, feedMood, activeView, circleView]);
   const selectedAgent = agentProfiles.find((agent) => agent.name === selectedAgentName) ?? agentProfiles[0];
   const visibleMoods = [...new Set(scopedPosts.map((post) => post.mood).filter(Boolean))].slice(0, 8);
   const reviewSummary = useMemo(() => ({ total: posts.length, pending: reviewTasks.filter((task) => task.status === '待处理').length, blocked: posts.filter((post) => post.review === '已拦截').length }), [posts, reviewTasks]);
@@ -266,6 +269,7 @@ export function SocialApp({ user, onLogout }: Props) {
   function handleRefresh() { setRefreshPulling(true); setTimeout(() => { setRefreshPulling(false); setNotice('动态已刷新'); }, 900); }
   function openPostDetail(post: Post) { setDetailPost(post); setSelectedPostId(post.id); }
 
+
   function toggleCircle(circleName: string) {
     setJoinedCircles(prev => {
       const next = prev.includes(circleName) ? prev.filter(c => c !== circleName) : [...prev, circleName];
@@ -279,6 +283,11 @@ export function SocialApp({ user, onLogout }: Props) {
 
   const filteredByCircle = joinedCircles.length === 0 ? visiblePosts : visiblePosts.filter(p => joinedCircles.some(c => p.topic.includes(c.replace('下班后缓冲区','职场').replace('城市迁移互助','人生').replace('深夜小事收纳所','生活').replace('亲密关系经营所','关系'))));
 
+  const displayedPosts = filteredByCircle.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredByCircle.length;
+
+  function loadMore() { playSound('click'); setVisibleCount(prev => Math.min(prev + 5, filteredByCircle.length)); }
+
   const moodChart = useMemo(() => {
     const counts: Record<string, number> = {};
     moodOptions.forEach(m => { counts[m] = 0; });
@@ -286,6 +295,13 @@ export function SocialApp({ user, onLogout }: Props) {
     const max = Math.max(1, ...Object.values(counts));
     return moodOptions.filter(m => counts[m] > 0).map(m => ({ mood: m, count: counts[m], pct: Math.round((counts[m] / max) * 100) })).sort((a, b) => b.count - a.count).slice(0, 5);
   }, [posts]);
+
+  function highlightText(text: string, query: string) {
+    if (!query.trim()) return text;
+    const escaped = query.replace(/[.*+?${}()|[\]\\]/g, '\function playSound(type: string) {');
+    const parts = text.split(new RegExp(`(${escaped})`, 'gi'));
+    return parts.map((part, i) => part.toLowerCase() === query.toLowerCase() ? `<mark class="search-highlight">${part}</mark>` : part).join('');
+  }
 
   function playSound(type: string) {
     if (!soundOn) return;
@@ -320,7 +336,9 @@ export function SocialApp({ user, onLogout }: Props) {
 
   return (
     <main className={`app-shell social-shell ${themes[themeIndex].className}`}>
-      <aside className="sidebar social-sidebar" aria-label="主导航">
+      <a href="#feed-panel" className="skip-link">跳到主内容</a>
+        <button className="hamburger-btn" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label={sidebarOpen ? "关闭菜单" : "打开菜单"} aria-expanded={sidebarOpen}>{sidebarOpen ? <X size={20} /> : <Menu size={20} />}</button>
+        <aside className="sidebar social-sidebar" aria-label="主导航">
         <div className="brand"><span className="brand-mark"><HeartHandshake size={22} /></span><div><strong>同频回声</strong><small>Empathy Circle</small></div></div>
         <nav className="nav-list">{(['广场', '空间', '智能体', '审核'] as ActiveView[]).map((view) => <button className={`nav-item ${activeView === view ? 'active' : ''}`} key={view} onClick={() => setActiveView(view)}>{view === '广场' && <MessageCircle size={18} />}{view === '空间' && <UsersRound size={18} />}{view === '智能体' && <Bot size={18} />}{view === '审核' && <ShieldCheck size={18} />}<span>{view}</span></button>)}</nav>
         <div className="mood-chart" style={{ padding: "0 4px", marginBottom: 10 }}>
@@ -402,7 +420,7 @@ export function SocialApp({ user, onLogout }: Props) {
                 <div className="no-results">
                   <Search size={40} /><p>没有匹配的动态<br />试试调整筛选条件</p>
                 </div>
-              ) : filteredByCircle.map((post) => (
+              ) : displayedPosts.map((post) => (
               <article className={`moment-card ${post.id === selectedPostId ? 'focused' : ''}`} key={post.id} style={{ "--card-delay": visiblePosts.findIndex(p => p.id === post.id) } as React.CSSProperties} onClick={() => setSelectedPostId(post.id)}>
                 <div className="moment-avatar">{avatarFor(post.author)}</div>
                 <div className="moment-main">
@@ -444,7 +462,7 @@ export function SocialApp({ user, onLogout }: Props) {
             <nav>
               <button className={activeView === '广场' ? 'active' : ''} onClick={() => setActiveView('广场')}><Home size={20} />广场</button>
               <button className={activeView === '空间' ? 'active' : ''} onClick={() => setActiveView('空间')}><User size={20} />空间</button>
-              <button className={activeView === '智能体' ? 'active' : ''} onClick={() => setActiveView('智能体')}><Bot size={20} />AI</button>
+              <button className={activeView === '智能体' ? 'active' : ''} onClick={() => { setActiveView('智能体'); setSidebarOpen(false); }}><Bot size={20} />AI</button>
               <button onClick={() => setNotifyOpen(true)}>
                 <div className="notification-bell-wrap"><Bell size={20} />{unreadCount > 0 && <span className="badge">{unreadCount}</span>}</div>
               </button>
