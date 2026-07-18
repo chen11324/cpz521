@@ -828,3 +828,47 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { box-shadow: 
   .admin-sidebar nav button.active::before { left: 50%; top: auto; bottom: 2px; width: 16px; height: 3px; border-radius: 2px; transform: translateX(-50%) scaleX(0); }
   .admin-sidebar nav button.active::before { transform: translateX(-50%) scaleX(1); }
 }
+
+
+/* === Theme panel hover glow === */
+.theme-panel { transition: background .2s ease; }
+.theme-panel:hover { background: #f0ede5; }
+
+/* === Demo accounts refined === */
+.demo-accounts summary { padding: 6px 0; transition: color .15s ease; }
+.demo-accounts summary:hover { color: var(--accent); }
+.demo-accounts button { padding: 8px 12px; transition: transform .15s ease, box-shadow .15s ease, background .15s ease; }
+.demo-accounts button:hover { transform: translateX(3px); background: #e5ede8; box-shadow: 0 3px 10px rgba(35,48,43,.05); }
+
+/* === Review section polished === */
+.review-section h3 { margin-bottom: 14px; }
+.review-task { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; border-radius: 16px; }
+.review-task:hover { border-color: color-mix(in srgb, var(--accent) 22%, white); }
+.review-buttons button { transition: transform .15s ease, box-shadow .15s ease; }
+.review-buttons button:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(35,48,43,.1); }
+.review-buttons button:active { transform: scale(.94); }
+
+/* === Space bio textarea polished === */
+.space-bio textarea { transition: border-color .2s ease, box-shadow .2s ease; border-radius: 12px; }
+.space-bio textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent); }
+
+/* === Agent tabs polished === */
+.agent-tabs button { transition: background .2s ease, color .2s ease, transform .15s ease; border-radius: 10px; }
+.agent-tabs button:hover { transform: translateY(-1px); }
+.agent-tabs button.active { animation: tab-select .24s ease both; }
+
+/* === Cover tool hover === */
+.cover-tool { transition: background .2s ease, transform .15s ease; }
+.cover-tool:hover { background: rgba(0,0,0,.42); transform: translateY(-1px); }
+
+/* === Security strip hover === */
+.security-strip { transition: background .15s ease; border-radius: 12px; padding: 10px 12px; }
+.security-strip:hover { background: rgba(47,117,103,.05); }
+
+/* === Hint list buttons === */
+.hint-list button { transition: transform .15s ease, background .15s ease; }
+.hint-list button:hover { transform: scale(1.04); }
+
+/* === Prompt chips enhanced === */
+.prompt-chips button { transition: transform .15s ease, background .2s ease, color .2s ease, box-shadow .2s ease; }
+.prompt-chips button:active { transform: scale(.94); }
