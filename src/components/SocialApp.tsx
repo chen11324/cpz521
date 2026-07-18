@@ -16,6 +16,7 @@ type Props = { user: SessionUser; onLogout: () => void };
 export function SocialApp({ user, onLogout }: Props) {
   const [state, setState] = useState<AppState>(() => readCachedState());
   const [activeView, setActiveView] = useState<ActiveView>('广场');
+  const [circleView, setCircleView] = useState(false);
   const [themeIndex, setThemeIndex] = useState(0);
   const [customCover, setCustomCover] = useState<string | null>(() => localStorage.getItem('empathy-circle.cover'));
   const [visibility, setVisibility] = useState<Visibility>(state.privacy.anonymousDefault ? '匿名' : '实名');
@@ -265,6 +266,19 @@ export function SocialApp({ user, onLogout }: Props) {
   function handleRefresh() { setRefreshPulling(true); setTimeout(() => { setRefreshPulling(false); setNotice('动态已刷新'); }, 900); }
   function openPostDetail(post: Post) { setDetailPost(post); setSelectedPostId(post.id); }
 
+  function toggleCircle(circleName: string) {
+    setJoinedCircles(prev => {
+      const next = prev.includes(circleName) ? prev.filter(c => c !== circleName) : [...prev, circleName];
+      localStorage.setItem('empathy-circle.circles', JSON.stringify(next));
+      setNotice(prev.includes(circleName) ? `已离开“${circleName}”` : `已加入“${circleName}”`);
+      playSound('click');
+      addNotification('circle', '🌐', '#5f6448', '圈层变更', prev.includes(circleName) ? `已离开“${circleName}”` : `已加入“${circleName}”`);
+      return next;
+    });
+  }
+
+  const filteredByCircle = joinedCircles.length === 0 ? visiblePosts : visiblePosts.filter(p => joinedCircles.some(c => p.topic.includes(c.replace('下班后缓冲区','职场').replace('城市迁移互助','人生').replace('深夜小事收纳所','生活').replace('亲密关系经营所','关系'))));
+
   const moodChart = useMemo(() => {
     const counts: Record<string, number> = {};
     moodOptions.forEach(m => { counts[m] = 0; });
@@ -353,7 +367,27 @@ export function SocialApp({ user, onLogout }: Props) {
           <div className={`pull-indicator${refreshPulling ? " pulling" : ""}`}>
                 <RefreshCw size={15} className="spin-icon" /><span>正在刷新...</span>
               </div>
-              <section className="feed-toolbar" aria-label="动态筛选"><div><span>今日回声</span><strong>{visiblePosts.length} 条正在发生</strong></div><div className="feed-filters">{(['全部', '已通过', '需复核'] as const).map((filter) => <button type="button" key={filter} className={feedFilter === filter ? 'active' : ''} onClick={() => setFeedFilter(filter)}>{filter}</button>)}</div>{visibleMoods.length > 1 && <div className="feed-mood-chips">{visibleMoods.map((mood) => <button type="button" key={mood} className={feedMood === mood ? "active" : ""} onClick={() => setFeedMood(feedMood === mood ? null : mood)}>{mood}{feedMood === mood ? " ×" : ""}</button>)}</div>}</section>
+              {circleView && (
+            <section className="circle-browse" style={{ marginBottom: 20 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <strong style={{ color: "var(--ink)", fontSize: 15 }}>探索圈层</strong>
+                <span style={{ color: "var(--muted)", fontSize: 12 }}>已加入 {joinedCircles.length} 个</span>
+              </div>
+              {circleProfiles.map((circle, idx) => (
+                <div className="circle-card" key={circle.name}>
+                  <div className="circle-icon" style={{ background: ["linear-gradient(135deg, #df775f, #f1c27d)", "linear-gradient(135deg, #2e7c86, #a7d7d2)", "linear-gradient(135deg, #5f6448, #d8d0af)", "linear-gradient(135deg, #7b5ea7, #c9b8e8)"][idx % 4] }}>{["🌙","🌆","🌙","💝"][idx % 4]}</div>
+                  <div className="circle-info"><strong>{circle.name}</strong><span>{circle.members.toLocaleString()} 人 · {circle.match}</span></div>
+                  <button className={`circle-join-btn${joinedCircles.includes(circle.name) ? " joined" : ""}`} onClick={() => toggleCircle(circle.name)}>{joinedCircles.includes(circle.name) ? "已加入" : "加入"}</button>
+                </div>
+              ))}
+              {joinedCircles.length > 0 && (
+                <button className="primary-button" style={{ marginTop: 10 }} onClick={() => { setCircleView(false); setNotice(`已筛选 ${joinedCircles.length} 个圈层的动态`); }}>
+                  <UsersRound size={16} />查看已加入圈层的动态
+                </button>
+              )}
+            </section>
+          )}
+          <section className="feed-toolbar" aria-label="动态筛选"><div><span>今日回声</span><strong>{visiblePosts.length} 条正在发生</strong></div><div className="feed-filters">{(['全部', '已通过', '需复核'] as const).map((filter) => <button type="button" key={filter} className={feedFilter === filter ? 'active' : ''} onClick={() => setFeedFilter(filter)}>{filter}</button>)}</div>{visibleMoods.length > 1 && <div className="feed-mood-chips">{visibleMoods.map((mood) => <button type="button" key={mood} className={feedMood === mood ? "active" : ""} onClick={() => setFeedMood(feedMood === mood ? null : mood)}>{mood}{feedMood === mood ? " ×" : ""}</button>)}</div>}</section>
           <section className="moments-list" aria-label="朋友圈动态">
             {loading ? Array.from({ length: 3 }).map((_, i) => (
                 <div className="skeleton-card" key={`sk-${i}`}>
@@ -364,11 +398,11 @@ export function SocialApp({ user, onLogout }: Props) {
                     <div className="skeleton skeleton-line short" />
                   </div>
                 </div>
-              )) : visiblePosts.length === 0 ? (
+              )) : filteredByCircle.length === 0 ? (
                 <div className="no-results">
                   <Search size={40} /><p>没有匹配的动态<br />试试调整筛选条件</p>
                 </div>
-              ) : visiblePosts.map((post) => (
+              ) : filteredByCircle.map((post) => (
               <article className={`moment-card ${post.id === selectedPostId ? 'focused' : ''}`} key={post.id} style={{ "--card-delay": visiblePosts.findIndex(p => p.id === post.id) } as React.CSSProperties} onClick={() => setSelectedPostId(post.id)}>
                 <div className="moment-avatar">{avatarFor(post.author)}</div>
                 <div className="moment-main">

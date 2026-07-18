@@ -1,0 +1,67 @@
+﻿version: 2.1
+
+orbs:
+  node: circleci/node@5.0.0
+
+jobs:
+  typecheck:
+    docker:
+      - image: cimg/node:22.12
+    steps:
+      - checkout
+      - node/install-packages:
+          pkg-manager: npm
+      - run:
+          name: TypeScript check
+          command: npx tsc --noEmit
+
+  build:
+    docker:
+      - image: cimg/node:22.12
+    steps:
+      - checkout
+      - node/install-packages:
+          pkg-manager: npm
+      - run:
+          name: Vite production build
+          command: npx vite build
+
+  api-test:
+    docker:
+      - image: cimg/node:22.12
+    steps:
+      - checkout
+      - node/install-packages:
+          pkg-manager: npm
+      - run:
+          name: Start server and run API smoke test
+          command: |
+            node server.mjs &
+            sleep 3
+            node api-smoke-test.mjs
+
+  auth-ui-test:
+    docker:
+      - image: cimg/node:22.12
+    steps:
+      - checkout
+      - node/install-packages:
+          pkg-manager: npm
+      - run:
+          name: Auth UI audit
+          command: node auth-ui-audit.mjs
+
+workflows:
+  version: 2
+  ci:
+    jobs:
+      - typecheck
+      - build:
+          requires:
+            - typecheck
+      - api-test:
+          requires:
+            - typecheck
+      - auth-ui-test:
+          requires:
+            - typecheck
