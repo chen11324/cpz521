@@ -260,7 +260,7 @@ export function SocialApp({ user, onLogout }: Props) {
           <section className="feed-toolbar" aria-label="动态筛选"><div><span>今日回声</span><strong>{visiblePosts.length} 条正在发生</strong></div><div className="feed-filters">{(['全部', '已通过', '需复核'] as const).map((filter) => <button type="button" key={filter} className={feedFilter === filter ? 'active' : ''} onClick={() => setFeedFilter(filter)}>{filter}</button>)}</div></section>
           <section className="moments-list" aria-label="朋友圈动态">
             {visiblePosts.map((post) => (
-              <article className={`moment-card ${post.id === selectedPostId ? 'focused' : ''}`} key={post.id} onClick={() => setSelectedPostId(post.id)}>
+              <article className={`moment-card ${post.id === selectedPostId ? 'focused' : ''}`} key={post.id} style={{ "--card-delay": visiblePosts.findIndex(p => p.id === post.id) } as React.CSSProperties} onClick={() => setSelectedPostId(post.id)}>
                 <div className="moment-avatar">{avatarFor(post.author)}</div>
                 <div className="moment-main">
                   <div className="moment-head"><div><strong>{post.author}</strong><span>{post.visibility} · {post.time}</span></div><span className={`state ${post.review === '已拦截' ? 'blocked' : post.review === '需复核' ? 'warning' : 'ok'}`}>{post.review}{post.risk > 40 && ` · ${post.risk}`}</span></div>

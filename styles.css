@@ -308,7 +308,8 @@ textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in
 .logout-action { margin-top: 12px; color: #9d4b4b; }
 
 /* Administration */
-.admin-shell { min-height: 100vh; display: grid; grid-template-columns: 238px minmax(0, 1fr); background: #f2f4f1; color: #24312d; }
+.admin-shell::before { content: ""; position: absolute; z-index: 0; inset: 0; background: radial-gradient(ellipse at 70% 20%, rgba(47,117,103,.1), transparent 55%), radial-gradient(ellipse at 30% 80%, rgba(223,119,95,.06), transparent 50%); pointer-events: none; animation: ambient-shift 14s ease-in-out infinite; }
+.admin-shell { position: relative; z-index: 0; overflow: hidden; min-height: 100vh; display: grid; grid-template-columns: 238px minmax(0, 1fr); background: #f2f4f1; color: #24312d; }
 .admin-sidebar { position: sticky; top: 0; height: 100vh; padding: 24px 16px; display: flex; flex-direction: column; border-right: 1px solid #dfe4e1; background: #fbfcfa; }
 .admin-sidebar nav { display: grid; gap: 6px; margin-top: 36px; }
 .admin-sidebar nav button, .admin-logout { min-height: 44px; padding: 0 12px; display: flex; align-items: center; gap: 10px; border-radius: 7px; color: #65716c; background: transparent; text-align: left; }
@@ -557,3 +558,123 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   .brand-cursor.is-action { width: 34px; height: 34px; background: #2d8d78; }
 }
 @media (pointer: coarse), (prefers-reduced-motion: reduce) { .brand-cursor { display: none !important; } }
+
+
+/* === Dynamic interactions === */
+
+/* App shell subtle ambient pulse */
+.app-shell::before { content: ""; position: fixed; z-index: 0; inset: 0; background: radial-gradient(ellipse at 50% 0%, rgba(47,117,103,.06), transparent 60%), radial-gradient(ellipse at 90% 90%, rgba(223,119,95,.05), transparent 50%); pointer-events: none; animation: ambient-shift 12s ease-in-out infinite; }
+@keyframes ambient-shift { 0%, 100% { opacity: .6; } 50% { opacity: 1; } }
+
+/* Staggered moment card entry */
+.moments-list { counter-reset: moment-index; }
+.moment-card { animation: card-enter .5s cubic-bezier(.22,.9,.34,1) both; animation-delay: calc(var(--card-delay, 0) * 65ms); opacity: 0; }
+@keyframes card-enter { from { opacity: 0; transform: translateY(18px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+/* Like button ripple */
+.moment-meta button { position: relative; overflow: hidden; }
+.moment-meta button::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: radial-gradient(circle at center, rgba(255,255,255,.65) 0%, transparent 70%); opacity: 0; transform: scale(.3); transition: opacity .36s ease, transform .36s ease; }
+.moment-meta button:active::after { opacity: 1; transform: scale(1.6); transition: none; }
+.moment-meta button.liked { animation: like-glow .6s ease both; }
+@keyframes like-glow { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 50%, transparent); } 50% { box-shadow: 0 0 0 14px color-mix(in srgb, var(--accent) 10%, transparent); } 100% { box-shadow: 0 0 0 0 transparent; } }
+
+/* Comment panel slide-in */
+.comments-panel { animation: slide-up .38s cubic-bezier(.22,.9,.34,1) both; }
+@keyframes slide-up { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.comments-panel article { animation: reply-enter .32s ease both; }
+.comments-panel article:nth-child(1) { animation-delay: .04s; }
+.comments-panel article:nth-child(2) { animation-delay: .08s; }
+.comments-panel article:nth-child(3) { animation-delay: .12s; }
+@keyframes reply-enter { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+
+/* Sidebar nav hover glow */
+.nav-item { position: relative; transition: background .2s ease, color .2s ease, box-shadow .2s ease; }
+.nav-item:hover { box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 12%, transparent); }
+.nav-item.active { box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 18%, transparent); }
+.nav-item svg { transition: transform .2s ease; }
+.nav-item:hover svg, .nav-item.active svg { transform: scale(1.08); }
+
+/* Composer focus glow */
+.social-composer textarea { transition: border-color .2s ease, box-shadow .2s ease, background .2s ease; }
+.social-composer textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 14%, transparent), 0 8px 32px color-mix(in srgb, var(--accent) 8%, transparent); background: #fff; }
+
+/* Filter button active state */
+.feed-filters button { transition: color .2s ease, background .2s ease, box-shadow .2s ease, transform .15s ease; }
+.feed-filters button:active { transform: scale(.95); }
+.feed-filters button.active { animation: filter-pop .28s ease both; }
+@keyframes filter-pop { 0% { transform: scale(.9); } 60% { transform: scale(1.06); } 100% { transform: scale(1); } }
+
+/* View tabs in social */
+.segmented button { transition: background .2s ease, color .2s ease, box-shadow .2s ease, transform .15s ease; }
+.segmented button:active { transform: scale(.96); }
+.segmented button.selected { position: relative; z-index: 1; animation: tab-select .24s ease both; }
+@keyframes tab-select { 0% { transform: scale(.92); } 60% { transform: scale(1.04); } 100% { transform: scale(1); } }
+
+/* Admin nav sidebar hover */
+.admin-sidebar .nav-item { margin-bottom: 2px; }
+
+/* Admin health card breathe */
+.health-card { animation: health-breathe 4s ease-in-out infinite; position: relative; overflow: hidden; }
+.health-card::after { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,.07) 40%, rgba(255,255,255,.13) 50%, rgba(255,255,255,.07) 60%, transparent 100%); transform: translateX(-100%); animation: health-shimmer 4s ease-in-out infinite; }
+@keyframes health-breathe { 0%, 100% { box-shadow: 0 20px 46px rgba(35,48,43,.15); } 50% { box-shadow: 0 24px 56px rgba(35,48,43,.22); } }
+@keyframes health-shimmer { 0%, 100% { transform: translateX(-100%); } 50% { transform: translateX(100%); } }
+
+/* Admin section tabs */
+.admin-sidebar button { transition: background .2s ease, color .2s ease, transform .15s ease; }
+.admin-sidebar button:hover { transform: translateX(2px); }
+.admin-sidebar button:active { transform: scale(.97); }
+
+/* Review queue item hover */
+.review-queue article { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+.review-queue article:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(35,48,43,.1); border-color: color-mix(in srgb, var(--accent) 18%, white); }
+
+/* Account table row hover */
+.account-table article { transition: background .2s ease, box-shadow .2s ease, transform .15s ease; }
+.account-table article:hover, .account-table article.selected-account { background: color-mix(in srgb, var(--accent) 8%, white); box-shadow: 0 4px 16px rgba(35,48,43,.06); }
+
+/* Admin settings input focus */
+.settings-grid input:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent); border-color: var(--accent); }
+
+/* Action button press */
+.overview-actions button:active, .settings-actions button:active { transform: scale(.96); }
+.overview-actions button, .settings-actions button { transition: transform .15s ease, box-shadow .2s ease, filter .2s ease; }
+
+/* Toast stay animation */
+.app-toast { animation: empathy-toast .32s ease both; }
+.app-toast:hover { transform: scale(1.02); transition: transform .15s ease; }
+
+/* Profile card avatar subtle scale */
+.profile-avatar { transition: transform .2s ease; }
+.profile-avatar:hover { transform: scale(1.06); }
+
+/* AI card quote glow */
+.ai-card .quote { transition: color .3s ease; }
+.ai-card:hover .quote { color: var(--ink); }
+
+/* Theme dot selection */
+.theme-dot { transition: transform .15s ease, box-shadow .2s ease; }
+.theme-dot:hover { transform: scale(1.15); }
+.theme-dot.picked { animation: dot-pick .3s ease both; }
+@keyframes dot-pick { 0% { transform: scale(.7); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
+
+/* Toggle switch animation */
+.toggle-row input[type="checkbox"] { transition: background .2s ease; }
+
+/* Insight panel cards enter */
+.profile-card, .ai-card, .review-card { animation: card-enter .4s ease both; }
+.profile-card { animation-delay: .05s; }
+.ai-card { animation-delay: .1s; }
+.review-card:nth-of-type(1) { animation-delay: .15s; }
+.review-card:nth-of-type(2) { animation-delay: .2s; }
+
+/* Admin panel transition */
+.admin-panel { animation: panel-in .38s cubic-bezier(.22,.9,.34,1) both; }
+@keyframes panel-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Reduced motion override */
+@media (prefers-reduced-motion: reduce) {
+  .moment-card, .comments-panel, .comments-panel article, .admin-panel, .profile-card, .ai-card, .review-card { animation: none; opacity: 1; }
+  .health-card { animation: none; }
+  .app-shell::before { animation: none; }
+  .nav-item:hover, .nav-item.active { box-shadow: none; }
+}
