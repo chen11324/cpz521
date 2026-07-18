@@ -1,6 +1,32 @@
 # 同频回声 · 项目交接文档
 
-> 仓库：chen11324/cpz521（公开，main）| 更新：2026-07-18 | 版本：v5
+> 仓库：chen11324/cpz521（公开，main）| 更新：2026-07-18 | 版本：v6
+
+## v6 更新摘要
+
+### 🐛 Bug 修复
+- **鼠标光标显示修复**：`.brand-cursor { display: none; }` 在 `@media (pointer: fine)` 块内未被覆盖，导致品牌光标永远不渲染。已添加 `display: block;` 到媒体查询内的 `.brand-cursor` 规则中。
+
+### 🎨 商业级视觉升级
+- **设计系统**：新增 `--shadow-sm/md/lg`、`--radius-xs~xl`、`--ease-out/spring` CSS 自定义属性
+- **字体升级**：引入 Google Fonts（Inter + Noto Sans SC），添加 `<link rel="preconnect">` 预加载
+- **背景系统**：三层径向渐变网格背景（accent 绿 + rose 粉 + gold 金），替代原本的单色灰绿背景
+- **玻璃拟态**：侧边栏、信息面板、卡片、编写器全面应用 `backdrop-filter: blur()` + 半透明背景
+- **卡片系统**：多层阴影、悬浮上浮 + 边框高亮、图片微缩放
+- **按钮系统**：渐变背景 + 彩色阴影 + 悬浮上浮 + 按压缩放反馈
+- **焦点环**：输入框聚焦时显示 5px 主题色辉光环 + 微上浮
+- **导航项**：独立 hover（灰色底）与 active（渐变 accent 底）状态
+- **暗色模式**：OLED 级深黑背景，所有新增元素适配暗色主题
+- **通用改进**：`scroll-behavior: smooth`、`::selection` 主题色高亮、`space-hero` 悬浮效果
+
+### 技术变更
+| 文件 | 变更 |
+|------|------|
+| `styles.css` | :root 新增设计令牌；.app-shell 渐变背景；侧边栏/面板玻璃拟态；social-composer 玻璃卡片；moment-main 玻璃卡片+hover；按钮渐变+阴影+动效；导航项分离 hover/active；暗色模式增强；textarea 聚焦光环 |
+| `index.html` | 添加 Google Fonts preconnect；添加 smooth scroll + ::selection 内联样式；BOM-free UTF-8 |
+| `src/components/BrandCursor.tsx` | 无需修改（CSS 修复已解决渲染问题） |
+
+---
 
 ## 项目目标
 桌面优先、响应式可运行于移动浏览器/PWA 的情绪分享社区：
@@ -18,14 +44,14 @@ src/
   constants.ts            主题/圈层/演示账号等常量
   utils.ts                审核/生成回复等工具函数
   components/
-    SocialApp.tsx          用户主流程（460行，核心文件）
+    SocialApp.tsx          用户主流程（~460行，核心文件）
     AdminApp.tsx           RBAC 后台（审核队列、账号权限、AI 配置）
     LoginScreen.tsx        账号/社交登录 + 注册
     BrandCursor.tsx        桌面端品牌跟随光标
     ConfirmDialog.tsx      确认弹窗
     ErrorBoundary.tsx      错误边界
 server.mjs                Node HTTP API（RBAC、审核、SQLite、CORS）
-styles.css                全局样式（暗色模式、毛玻璃、动画、响应式，约122KB）
+styles.css                全局样式（暗色模式、毛玻璃、动画、响应式，~95KB）
 .circleci/config.yml      CI/CD（typecheck → build + api-test + auth-ui-test）
 api-smoke-test.mjs        API 冒烟测试
 auth-ui-audit.mjs         登录页审计测试
@@ -41,12 +67,11 @@ package.json              依赖与脚本
 ---
 
 ## 已完成功能
-
 ### 用户端
-- 匿名/实名发布，支持封面/配图上传
+- 匿名/实名发布，支持封面配图上传
 - 点赞、评论、举报、表情回应
 - 圈层浏览 + 加入/离开 + 圈层筛选
-- AI 智能体对话（暖声/镜面/行动灯）
+- AI 智能体对话（暖声/镜面/行动灯塔）
 - 隐私控制（默认匿名、同频推荐、审核日志）
 - 数据导出、空间签名编辑
 - 心情追踪器 + 心情分布柱状图
@@ -56,7 +81,7 @@ package.json              依赖与脚本
 - 动态详情弹窗（点击展开，含 AI 回声 + 同频回应）
 - 骨架屏加载态、下拉刷新、无限滚动
 - 音效反馈（Web Audio API，可开关）
-- 暗色模式（CSS 变量，70+ 规则覆盖，localStorage 持久化）
+- 暗色模式（CSS 变量，50+ 规则覆盖，localStorage 持久化）
 - 图片灯箱（点击全屏查看）
 - 移动端底部导航 + 汉堡菜单侧栏抽屉
 - 全局毛玻璃效果 + 卡片悬浮动画
@@ -72,11 +97,11 @@ package.json              依赖与脚本
 - 账号密码登录 + 注册（手机绑定）
 - 微信/QQ/Apple 演示授权（含二维码生成）
 - 会话恢复、强制预览模式
-- 演示账号一键填入
+- 演示账号一键填充
 
 ### 工程化
 - TypeScript 全量检查
-- Vite 生产构建（92KB CSS + 283KB JS）
+- Vite 生产构建（95KB CSS + 283KB JS）
 - API 冒烟测试 + 登录页审计测试
 - CircleCI 流水线（typecheck / build / api-test / auth-ui-test）
 - prefers-reduced-motion 尊重
@@ -103,19 +128,19 @@ package.json              依赖与脚本
 ## 重要文件说明
 | 文件 | 大小 | 说明 |
 |------|------|------|
-| src/components/SocialApp.tsx | 41KB | 用户核心流程，包含所有交互逻辑 |
-| src/components/AdminApp.tsx | 13KB | RBAC 后台管理 |
-| src/components/LoginScreen.tsx | 13KB | 登录/注册/社交授权 |
-| styles.css | 122KB | 全部样式（主题/动画/暗色模式/响应式） |
-| server.mjs | 23KB | API 服务端（审核规则/RBAC/SQLite） |
-| .circleci/config.yml | 1.3KB | CI 流水线配置 |
+| src/components/SocialApp.tsx | ~41KB | 用户核心流程，包含所有交互逻辑 |
+| src/components/AdminApp.tsx | ~13KB | RBAC 后台管理 |
+| src/components/LoginScreen.tsx | ~13KB | 登录/注册/社交授权 |
+| styles.css | ~95KB | 全部样式（主题/动画/暗色模式/响应式） |
+| server.mjs | ~23KB | API 服务端（审核规则/RBAC/SQLite） |
+| .circleci/config.yml | ~1.3KB | CI 流水线配置 |
 
 ---
 
 ## 已知问题
-- **Android 构建**：JDK 17 已安装但 Android Studio/SDK 下载失败，未经 Debug APK 验证
+- **Android 构建**：JDK 17 已安装但 Android Studio/SDK 下载失败，未经验证 Debug APK
 - **iOS 构建**：必须在 macOS + Xcode 环境
-- **Electron 打包**：二进制曾因 npm 网络失败被清理，需先执行 npm install 确认下载可用
+- **Electron 打包**：二进制曾因 npm 网络失败被清理，需先执行 `npm install` 确认下载可用
 - **演示实现**：AI、认证、RBAC、风控均为前端模拟，生产需对接真实后端
 - **运行时数据**：data/empathy-circle.sqlite 已加入 .gitignore
 
@@ -123,20 +148,20 @@ package.json              依赖与脚本
 
 ## 下一步
 1. 浏览器回归测试（四种角色在 375/768/1440 实际设备）
-2. 恢复 Electron：npm install → 验证桌面打包与启动
-3. Android：设置 JAVA_HOME → android/gradlew.bat assembleDebug
-4. iOS：移交 macOS + Xcode 编译
+2. 恢复 Electron：`npm install` → 验证桌面打包与启动
+3. Android：设置 `JAVA_HOME` → `android/gradlew.bat assembleDebug`
+4. iOS：迁移 macOS + Xcode 编译
 5. 生产化：替换模拟 API、httpOnly 会话、密钥托管、限流审计
 
 ---
 
 ## 约束 / 不能改动
-- **中文源码**：UTF-8 无 BOM；禁止 PowerShell 宽泛替换中文
+- **中文源码**：UTF-8 无 BOM；禁止 PowerShell 广泛替换中文
 - **不提交**：node_modules、dist、release、data/*.sqlite、API Key、日志、临时文件
 - **API 封装**：受 RBAC 保护的请求必须走 src/api.ts
 - **CORS**：必须保留 content-type, authorization 头
-- **真机构建**：VITE_API_BASE 必须指向设备可访问的 HTTPS API，禁止打入 localhost
-- **原生工程**：android/、ios/ 纳入源码控制，但不提交构建产物/Gradle 缓存/Pods
+- **真机构建**：VITE_API_BASE 必须指向设备可访问的 HTTPS API，禁止填入 localhost
+- **原生工程**：android/、ios/ 纳入源码控制，但不提交构建产物 Gradle 缓存/Pods
 - **动效**：必须支持 prefers-reduced-motion；触屏保持系统光标；输入框保留文本光标
 - **构建不等于启动**：Vite build 成功不等于 Electron/原生应用能正常运行
 
@@ -144,6 +169,7 @@ package.json              依赖与脚本
 
 ## 提交历史（最近 10 条）
 ```
+a96b527 docs: 精简项目交接文档，含v5全部功能、目录结构、约束与下一步
 ddd8152 feat: v5 - 汉堡菜单·搜索高亮·无限滚动·焦点环无障碍
 ddddfa8 feat: v4 - 圈层浏览·实时轮询·CircleCI流水线·auth-ui审计
 e459bda feat: UI v3 - 暗色模式·心情图表·表情回应·图片灯箱·音效反馈
@@ -153,5 +179,4 @@ c9062f2 feat: report confirmation dialog, comment panel styling, insight mobile 
 d159c5a feat: feed search box and mood chip filters
 641d4ec feat: ErrorBoundary graceful error page, brand mark pulse
 fe898dd feat: SVG favicon, meta tags, space hero gradient and typography
-b89287a feat: elegant cursor redesign, post-login visual upgrade, lazy loading
 ```
