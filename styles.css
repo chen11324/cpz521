@@ -990,3 +990,17 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { box-shadow: 
   .feed-toolbar > div:first-child { flex-direction: column; align-items: flex-start; }
   .feed-search-box { max-width: 100%; width: 100%; }
 }
+
+/* === Confirm dialog === */
+.confirm-overlay { position: fixed; z-index: 50; inset: 0; display: grid; place-items: center; background: rgba(13,38,34,.32); backdrop-filter: blur(4px); animation: confirm-in .2s ease both; padding: 24px; }
+.confirm-card { max-width: 400px; width: 100%; display: grid; gap: 14px; padding: clamp(24px, 5vw, 36px); border-radius: 24px; background: #fff; box-shadow: 0 24px 64px rgba(13,38,34,.2); text-align: center; }
+.confirm-icon { width: 56px; height: 56px; margin: 0 auto; display: grid; place-items: center; border-radius: 50%; color: #c4824a; background: #fef5ed; }
+.confirm-card h3 { margin: 0; color: #1e332d; font-size: 18px; }
+.confirm-card p { margin: 0; color: #6e7b75; line-height: 1.6; font-size: 14px; }
+.confirm-actions { display: flex; gap: 10px; justify-content: center; }
+.confirm-cancel { min-height: 42px; padding: 0 20px; border: 1px solid #dce2de; border-radius: 12px; color: #5a6b65; background: #f5f7f5; font-weight: 800; transition: background .15s ease; }
+.confirm-cancel:hover { background: #e8ece9; }
+.confirm-ok { min-height: 42px; padding: 0 20px; border-radius: 12px; color: white; background: #c4504a; font-weight: 800; box-shadow: 0 8px 20px rgba(196,80,74,.2); transition: filter .15s ease; }
+.confirm-ok:hover { filter: brightness(1.08); }
+@keyframes confirm-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .confirm-overlay { animation: none; } }
