@@ -1,8 +1,30 @@
 # 同频回声 · 项目交接文档
 
-> 仓库：chen11324/cpz521（公开，main）| 更新：2026-07-18 | 版本：v6
+> 仓库：chen11324/cpz521（公开，main）| 更新：2026-07-18 | 版本：v6.1（Web端优先）
 
-## v6 更新摘要
+## v6.1 更新摘要（第二轮迭代：动态元素 + 质感升级）
+
+### 新增动态元素
+- **动画渐变网格背景**：多层径向渐变 `mesh-drift` 慢速漂移动画
+- **浮动环境光斑**：大尺寸柔光球体 `float-orb` CSS 动画，增加空间深度
+- **玻璃拟态 sticky 导航条**：backdrop-filter 毛玻璃 + 滚动进度条（animation-timeline）
+- **卡片 3D 悬浮**：`perspective(800px) rotateX(1deg)` + 多层阴影立体感
+- **品牌标识升级**：呼吸脉冲光晕 + hover 旋转缩放 + 8px 扩散环
+- **移动端导航 active 指示器**：顶部胶囊形 indicator 滑入动画
+- **通知徽章脉冲**：未读红点 badge-pulse 呼吸光晕
+- **汉堡菜单升级**：毛玻璃背景 + hover 缩放 + 更大触控面积
+- **骨架屏闪烁**：shimmer 渐变流动动画
+- **登录页动效**：auth-panel 渐变背景 + 浮动光斑 + 毛玻璃卡片
+- **暗色模式全适配**：topbar/骨架屏/光斑/毛玻璃全元素暗色主题
+
+### v6 基础升级（第一轮迭代）
+- **Bug 修复**：品牌光标 display:none 被 @media(pointer:fine) 覆盖
+- **设计系统**：新增 --shadow-* --radius-* --ease-* CSS 变量
+- **Google Fonts**：Inter + Noto Sans SC + preconnect
+- **全局玻璃拟态**：侧边栏/面板/卡片/编写器 backdrop-filter
+- **渐变按钮系统**：渐变背景 + 彩色阴影 + 悬浮上浮 + 按压缩放
+- **聚焦光环**：5px 主题色辉光 + 微上浮
+- **暗色模式**：OLED 深黑背景
 
 ### 🐛 Bug 修复
 - **鼠标光标显示修复**：`.brand-cursor { display: none; }` 在 `@media (pointer: fine)` 块内未被覆盖，导致品牌光标永远不渲染。已添加 `display: block;` 到媒体查询内的 `.brand-cursor` 规则中。
