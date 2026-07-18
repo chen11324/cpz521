@@ -11,26 +11,24 @@ export function BrandCursor() {
     const media = window.matchMedia('(pointer: fine)');
     const root = document.documentElement;
     if (!cursor) return;
-    const cursorElement = cursor;
+    const el = cursor;
 
     function setEnabled() {
       root.classList.toggle('brand-cursor-enabled', media.matches);
-      if (!media.matches) cursorElement.classList.remove('is-visible');
+      if (!media.matches) el.classList.remove('is-visible');
     }
 
     function moveCursor(event: PointerEvent) {
       if (!media.matches || event.pointerType === 'touch') return;
       const target = event.target instanceof Element ? event.target : null;
       const isTextTarget = Boolean(target?.closest(textSelector));
-      cursorElement.style.setProperty('--brand-cursor-x', event.clientX + 'px');
-      cursorElement.style.setProperty('--brand-cursor-y', event.clientY + 'px');
-      cursorElement.classList.toggle('is-visible', !isTextTarget);
-      cursorElement.classList.toggle('is-action', Boolean(target?.closest(interactiveSelector)) && !isTextTarget);
+      el.style.setProperty('--cursor-x', event.clientX + 'px');
+      el.style.setProperty('--cursor-y', event.clientY + 'px');
+      el.classList.toggle('is-visible', !isTextTarget);
+      el.classList.toggle('is-action', Boolean(target?.closest(interactiveSelector)) && !isTextTarget);
     }
 
-    function hideCursor() {
-      cursorElement.classList.remove('is-visible');
-    }
+    function hideCursor() { el.classList.remove('is-visible'); }
 
     setEnabled();
     media.addEventListener('change', setEnabled);
@@ -47,5 +45,5 @@ export function BrandCursor() {
     };
   }, []);
 
-  return <div ref={cursorRef} className="brand-cursor" aria-hidden="true"><span /></div>;
+  return <div ref={cursorRef} className="brand-cursor" aria-hidden="true" />;
 }

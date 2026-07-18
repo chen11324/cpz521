@@ -288,7 +288,7 @@ export function SocialApp({ user, onLogout }: Props) {
                 <div className="moment-main">
                   <div className="moment-head"><div><strong>{post.author}</strong><span>{post.visibility} · {post.time}</span></div><span className={`state ${post.review === '已拦截' ? 'blocked' : post.review === '需复核' ? 'warning' : 'ok'}`}>{post.review}{post.risk > 40 && ` · ${post.risk}`}</span></div>
                   <p>{post.text}</p>
-                  <img className="moment-image" src={imageFor(post)} alt="" />
+                  <img className="moment-image" src={imageFor(post)} alt="" loading="lazy" />
                   <div className="moment-meta"><span>{post.mood} · {post.topic}</span><button onClick={(e) => { e.stopPropagation(); toggleComments(post.id); }}><MessageCircle size={14} />{post.peerReplies.length}</button><button className={likedPostIds.includes(post.id) ? 'liked' : ''} onClick={(e) => { e.stopPropagation(); likePost(post.id); }}><ThumbsUp size={14} />{likedPostIds.includes(post.id) ? '已认可 ' : ''}{post.likes}</button></div>
                 </div>
               </article>
