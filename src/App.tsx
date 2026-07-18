@@ -4,6 +4,7 @@ import { LoginScreen } from './components/LoginScreen';
 import { SocialApp } from './components/SocialApp';
 import { AdminApp } from './components/AdminApp';
 import { BrandCursor } from './components/BrandCursor';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 export function App() {
   const [transitioning, setTransitioning] = useState(false);
@@ -43,5 +44,5 @@ export function App() {
       ? <AdminApp user={user} onLogout={logout} />
       : <SocialApp user={user} onLogout={logout} />;
 
-  return <><BrandCursor />{transitioning && <div className="app-transition" aria-hidden="true"><div className="app-transition-core"><span /><span /><span /></div></div>}{content}</>;
+  return <ErrorBoundary><BrandCursor />{transitioning && <div className="app-transition" aria-hidden="true"><div className="app-transition-core"><span /><span /><span /></div></div>}{content}</ErrorBoundary>;
 }

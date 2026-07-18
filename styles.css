@@ -953,8 +953,16 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { box-shadow: 
 
 /* === Brand in sidebar polished === */
 .sidebar .brand { padding: 4px 6px; }
-.brand-mark { box-shadow: 0 8px 20px rgba(47,117,103,.2); }
+.brand-mark { box-shadow: 0 8px 20px rgba(47,117,103,.2); animation: brand-pulse 4s ease-in-out infinite; }
 
 /* === Floating action button refined === */
 .floating-action { border-radius: 14px; background: rgba(255,255,255,.8); border: 1px solid rgba(35,48,43,.08); box-shadow: 0 4px 14px rgba(35,48,43,.06); }
 .floating-action:hover { background: #fff; box-shadow: 0 8px 24px rgba(35,48,43,.1); }
+
+/* === Error boundary === */
+.error-boundary { min-height: 100vh; display: grid; place-items: center; background: radial-gradient(circle at 50% 30%, rgba(47,117,103,.1), transparent 50%), #f5f7f4; padding: 24px; }
+.error-boundary-card { max-width: 440px; display: grid; gap: 16px; text-align: center; padding: clamp(28px, 6vw, 48px); border-radius: 24px; background: rgba(255,255,255,.8); border: 1px solid rgba(35,48,43,.08); box-shadow: 0 20px 50px rgba(35,48,43,.08); }
+.error-boundary-card .brand-mark { margin: 0 auto; }
+.error-boundary-card h1 { margin: 0; font-size: 24px; color: #1e332d; }
+.error-boundary-card p { margin: 0; color: #6e7b75; line-height: 1.7; }
+.error-boundary-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 4px; }
